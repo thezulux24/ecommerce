@@ -10,20 +10,35 @@ export class ProductsService {
         return this.prisma.product.create({ data });
     }
 
-    async findAll(query?: { category?: string; search?: string }): Promise<Product[]> {
+    async findAll(query?: { category?: string; search?: string; brand?: string; minPrice?: number; maxPrice?: number }): Promise<Product[]> {
         const where: Prisma.ProductWhereInput = {};
+
         if (query?.category) {
             where.category = { slug: query.category };
         }
+
+        if (query?.brand) {
+            where.brand = { slug: query.brand };
+        }
+
+        if (query?.minPrice !== undefined || query?.maxPrice !== undefined) {
+            where.price = {
+                gte: query.minPrice ? Number(query.minPrice) : undefined,
+                lte: query.maxPrice ? Number(query.maxPrice) : undefined,
+            };
+        }
+
         if (query?.search) {
             where.OR = [
                 { name: { contains: query.search, mode: 'insensitive' } },
                 { description: { contains: query.search, mode: 'insensitive' } },
             ];
         }
+
         return this.prisma.product.findMany({
             where,
             include: { images: true, category: true, brand: true },
+            orderBy: { createdAt: 'desc' }
         });
     }
 

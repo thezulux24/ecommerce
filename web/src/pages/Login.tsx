@@ -97,7 +97,7 @@ export const Login = () => {
                     </form>
 
                     <div className="mt-8 text-center pt-8 border-t border-white/5">
-                        <p className="text-sm text-muted-foreground mb-4 italic">¿Eres nuevo en el laboratorio?</p>
+                        <p className="text-sm text-muted-foreground mb-4 italic">¿Eres nuevo en la comunidad?</p>
                         <Link
                             to="/register"
                             className="text-white uppercase font-display tracking-widest text-sm hover:text-primary transition-colors inline-flex items-center gap-2"

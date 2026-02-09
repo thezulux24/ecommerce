@@ -13,7 +13,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, adminO
     if (loading) {
         return (
             <div className="min-h-screen bg-background flex items-center justify-center">
-                <div className="text-primary font-display uppercase tracking-widest animate-pulse">Cargando Laboratorio...</div>
+                <div className="text-primary font-display uppercase tracking-widest animate-pulse">Cargando Arsenal...</div>
             </div>
         );
     }

@@ -55,7 +55,7 @@ export const Home = () => {
                         </h1>
 
                         <p className="text-lg text-gray-400 mb-12 max-w-xl font-medium leading-relaxed uppercase tracking-wide">
-                            Diseñado en laboratorios de alto rendimiento. Fórmulas puras para llevar tu cuerpo más allá de su umbral biológico.
+                            Seleccionamos la mejor suplementación de alto rendimiento. Fórmulas puras para llevar tu cuerpo más allá de su umbral biológico.
                         </p>
 
                         <div className="flex flex-wrap gap-6 mb-16">
@@ -82,7 +82,7 @@ export const Home = () => {
                             </div>
                             <div className="flex items-center gap-3">
                                 <Activity size={20} className="text-primary" />
-                                <span className="text-[10px] uppercase font-bold tracking-widest text-white">Pureza 100%</span>
+                                <span className="text-[10px] uppercase font-bold tracking-widest text-white">100% Original</span>
                             </div>
                         </div>
                     </motion.div>
@@ -119,7 +119,7 @@ export const Home = () => {
                     <div className="flex flex-col md:flex-row justify-between items-end mb-20 gap-8">
                         <div>
                             <div className="flex items-center gap-2 text-primary mb-4 font-bold tracking-[0.3em] uppercase text-xs">
-                                <span className="h-px w-8 bg-primary" /> Top del Laboratorio
+                                <span className="h-px w-8 bg-primary" /> Top del Arsenal
                             </div>
                             <h2 className="text-6xl font-display italic uppercase mb-6 leading-none tracking-tighter">Más <span className="text-primary">Vendidos</span></h2>
                             <p className="text-gray-400 text-lg max-w-md font-medium">Los favoritos de nuestra comunidad de alto rendimiento en Colombia.</p>

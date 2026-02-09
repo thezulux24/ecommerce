@@ -34,7 +34,7 @@ export class ProductsController {
     }
 
     @Get()
-    findAll(@Query() query: { category?: string; search?: string }) {
+    findAll(@Query() query: { category?: string; search?: string; brand?: string; minPrice?: number; maxPrice?: number }) {
         return this.productsService.findAll(query);
     }
 
