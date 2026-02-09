@@ -10,7 +10,7 @@ export class OrdersService {
         private cartService: CartService,
     ) { }
 
-    async createFromCart(userId: string, shippingAddress: string): Promise<Order> {
+    async createFromCart(userId: string, shippingAddressId: string): Promise<Order> {
         const cart = await this.cartService.getCart(userId);
         if (!cart.items.length) {
             throw new BadRequestException('Cart is empty');
@@ -26,7 +26,7 @@ export class OrdersService {
                 data: {
                     userId,
                     totalAmount,
-                    shippingAddress,
+                    shippingAddressId,
                     status: OrderStatus.PENDING,
                     items: {
                         create: cart.items.map((item) => ({

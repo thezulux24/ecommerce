@@ -38,6 +38,25 @@ model User {
   orders        Order[]
   reviews       Review[]
   cart          Cart?
+  addresses     Address[]
+}
+
+model Address {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type          String   @default("SHIPPING") // "SHIPPING" or "BILLING"
+  isDefault     Boolean  @default(false)
+  fullName      String
+  street        String
+  city          String
+  state         String
+  zipCode       String
+  country       String
+  phone         String?
+  orders        Order[]  @relation("ShippingAddress")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 model Category {
@@ -67,6 +86,7 @@ model Product {
   reviews     Review[]
   orderItems  OrderItem[]
   cartItems   CartItem[]
+  metadata    Json?          // For dynamic attributes like nutrition, brand, material, etc.
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
 }
@@ -98,16 +118,20 @@ model CartItem {
 }
 
 model Order {
-  id              String      @id @default(uuid())
-  userId          String
-  user            User        @relation(fields: [userId], references: [id])
-  status          OrderStatus @default(PENDING)
-  totalAmount     Decimal     @db.Decimal(10, 2)
-  shippingAddress String
-  paymentId       String?     // PayU transaction ID
-  items           OrderItem[]
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
+  id                String      @id @default(uuid())
+  userId            String
+  user              User        @relation(fields: [userId], references: [id])
+  status            OrderStatus @default(PENDING)
+  totalAmount       Decimal     @db.Decimal(10, 2)
+  taxAmount         Decimal     @default(0) @db.Decimal(10, 2)
+  shippingCost      Decimal     @default(0) @db.Decimal(10, 2)
+  shippingAddressId String
+  shippingAddress   Address     @relation("ShippingAddress", fields: [shippingAddressId], references: [id])
+  trackingNumber    String?
+  items             OrderItem[]
+  payments          Payment[]
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
 }
 
 model OrderItem {
@@ -118,6 +142,21 @@ model OrderItem {
   product   Product  @relation(fields: [productId], references: [id])
   quantity  Int
   price     Decimal  @db.Decimal(10, 2) // Price at time of purchase
+}
+
+model Payment {
+  id            String   @id @default(uuid())
+  orderId       String
+  order         Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  provider      String   // e.g., "PAYU", "STRIPE"
+  status        String   // e.g., "PENDING", "COMPLETED", "FAILED"
+  transactionId String?  @unique
+  amount        Decimal  @db.Decimal(10, 2)
+  currency      String   @default("COP")
+  method        String?  // e.g., "CREDIT_CARD", "PSE"
+  metadata      Json?    // Full gateway response payload
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 model Review {

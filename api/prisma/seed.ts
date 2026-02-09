@@ -4,7 +4,9 @@ import * as bcrypt from 'bcrypt';
 const prisma = new PrismaClient();
 
 async function main() {
-    // Clear existing data
+    console.log('Clearing existing data...');
+    // Clear existing data in reverse order of dependencies
+    await prisma.payment.deleteMany();
     await prisma.review.deleteMany();
     await prisma.orderItem.deleteMany();
     await prisma.order.deleteMany();
@@ -13,18 +15,19 @@ async function main() {
     await prisma.productImage.deleteMany();
     await prisma.product.deleteMany();
     await prisma.category.deleteMany();
+    await prisma.address.deleteMany();
     await prisma.user.deleteMany();
 
-    console.log('Seeding data...');
+    console.log('Seeding Apex Labs data...');
 
     // Create Users
     const hashedPassword = await bcrypt.hash('admin123', 10);
     const admin = await prisma.user.create({
         data: {
-            email: 'admin@onlinestore.com',
+            email: 'admin@apexlabs.com',
             password: hashedPassword,
             firstName: 'Admin',
-            lastName: 'User',
+            lastName: 'Apex',
             role: Role.ADMIN,
         },
     });
@@ -32,65 +35,99 @@ async function main() {
     const customerPassword = await bcrypt.hash('customer123', 10);
     const customer = await prisma.user.create({
         data: {
-            email: 'customer@onlinestore.com',
+            email: 'athlete@apexlabs.com',
             password: customerPassword,
-            firstName: 'John',
-            lastName: 'Doe',
+            firstName: 'Elite',
+            lastName: 'Athlete',
             role: Role.USER,
             cart: { create: {} },
+            addresses: {
+                create: {
+                    fullName: 'Elite Athlete',
+                    street: '123 Performance Way',
+                    city: 'Everest',
+                    state: 'Peak State',
+                    zipCode: '90001',
+                    country: 'United States',
+                    type: 'SHIPPING',
+                    isDefault: true,
+                },
+            },
         },
+        include: { addresses: true },
     });
 
     // Create Categories
-    const furniture = await prisma.category.create({
-        data: { name: 'Furniture', slug: 'furniture' },
+    const performance = await prisma.category.create({
+        data: { name: 'Mejorar rendimiento', slug: 'mejorar-rendimiento', description: 'Potenciadores de energía, resistencia y fuerza.' },
     });
 
-    const lighting = await prisma.category.create({
-        data: { name: 'Lighting', slug: 'lighting' },
+    const recovery = await prisma.category.create({
+        data: { name: 'Ganar masa muscular', slug: 'ganar-masa-muscular', description: 'Proteína y aminoácidos para el crecimiento muscular.' },
     });
 
-    const decor = await prisma.category.create({
-        data: { name: 'Decor', slug: 'decor' },
+    const wellness = await prisma.category.create({
+        data: { name: 'Perder grasa', slug: 'perder-grasa', description: 'Optimizadores metabólicos y quema de grasa.' },
     });
 
     // Create Products
     const products = [
         {
-            name: 'Modern Velvet Chair',
-            slug: 'modern-velvet-chair',
-            description: 'A comfortable and stylish velvet chair for your living room.',
-            price: '299.99',
-            stock: 15,
-            categoryId: furniture.id,
-            images: ['https://images.unsplash.com/photo-1592078615290-033ee584e267?q=80&w=800'],
+            name: 'Apex Pure Whey',
+            slug: 'apex-pure-whey',
+            description: 'Ultra-filtered whey protein isolate for maximum absorption.',
+            price: '54.99',
+            stock: 100,
+            categoryId: recovery.id,
+            images: ['https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=800'],
+            metadata: {
+                protein: '25g',
+                carbs: '2g',
+                servings: 30,
+                flavor: 'Nitro Chocolate',
+            },
         },
         {
-            name: 'Nordic Wood Table',
-            slug: 'nordic-wood-table',
-            description: 'Minimalist wooden table made from sustainable oak.',
-            price: '450.00',
-            stock: 8,
-            categoryId: furniture.id,
-            images: ['https://images.unsplash.com/photo-1533090161767-e6ffed986c88?q=80&w=800'],
+            name: 'Nitro Pre-Workout',
+            slug: 'nitro-pre-workout',
+            description: 'Explosive energy and laser focus for your most intense sessions.',
+            price: '39.99',
+            stock: 75,
+            categoryId: performance.id,
+            images: ['https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=800'],
+            metadata: {
+                caffeine: '300mg',
+                betaAlanine: '3.2g',
+                flavor: 'Electric Lime',
+            },
         },
         {
-            name: 'Designer Glass Lamp',
-            slug: 'designer-glass-lamp',
-            description: 'Hand-blown glass lamp with a sleek metallic base.',
-            price: '120.00',
-            stock: 25,
-            categoryId: lighting.id,
-            images: ['https://images.unsplash.com/photo-1507473885765-e6ed03ac1b11?q=80&w=800'],
+            name: 'Daily Optimizer Multivitamin',
+            slug: 'daily-optimizer',
+            description: 'Full spectrum of essential vitamins and minerals for elite health.',
+            price: '24.99',
+            stock: 150,
+            categoryId: wellness.id,
+            images: ['https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=800'],
+            metadata: {
+                count: 60,
+                form: 'Capsule',
+                focus: 'Immunity',
+            },
         },
         {
-            name: 'Abstract Marble Sculpture',
-            slug: 'abstract-marble-sculpture',
-            description: 'Modern art piece for your desk or shelf.',
-            price: '85.00',
-            stock: 40,
-            categoryId: decor.id,
-            images: ['https://images.unsplash.com/photo-1555041469-a586c61ea9bc?q=80&w=800'],
+            name: 'Apex BCAA 2:1:1',
+            slug: 'apex-bcaa',
+            description: 'Intra-workout hydration and muscle sparing formula.',
+            price: '29.99',
+            stock: 90,
+            categoryId: recovery.id,
+            images: ['https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=800'],
+            metadata: {
+                bcaas: '7g',
+                sugar: '0g',
+                flavor: 'Vibrant Orange',
+            },
         },
     ];
 

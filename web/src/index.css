@@ -1,22 +1,24 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap');
 
 @import "tailwindcss";
 
 @theme {
-  --color-background: #F9F8F6;
-  --color-foreground: #1A1A1A;
+  --color-background: #0A0A0A;
+  --color-foreground: #FFFFFF;
 
-  --color-primary: #2D2D2D;
-  --color-primary-foreground: #FFFFFF;
+  --color-primary: #CCFF00;
+  /* Electric Lime/Yellow */
+  --color-primary-foreground: #000000;
 
-  --color-accent: #D4B499;
-  --color-accent-foreground: #1A1A1A;
+  --color-accent: #FF5C00;
+  /* Vibrant Orange */
+  --color-accent-foreground: #FFFFFF;
 
-  --color-muted: #E5E1DA;
-  --color-muted-foreground: #666666;
+  --color-muted: #1F1F1F;
+  --color-muted-foreground: #A1A1AA;
 
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-  --font-display: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Oswald", ui-sans-serif, system-ui, sans-serif;
 }
 
 @layer base {
@@ -39,7 +41,7 @@
   h3,
   h4,
   .font-display {
-    @apply font-display tracking-tight text-primary;
+    @apply font-display uppercase tracking-wider text-foreground;
   }
 }
 
@@ -48,5 +50,20 @@ html {
 }
 
 ::selection {
-  @apply bg-accent/30 text-foreground;
+  @apply bg-primary/30 text-primary;
+}
+
+/* Custom UI Components for Supplements Store */
+@layer components {
+  .btn-primary {
+    @apply bg-primary text-primary-foreground px-6 py-3 font-display uppercase tracking-widest transition-all hover:brightness-110 active:scale-95 disabled:opacity-50 inline-flex items-center justify-center gap-2;
+  }
+
+  .card-premium {
+    @apply bg-muted border border-white/5 rounded-none p-6 transition-all hover:border-primary/30 relative overflow-hidden;
+  }
+
+  .text-glow {
+    text-shadow: 0 0 15px rgba(204, 255, 0, 0.3);
+  }
 }

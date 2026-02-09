@@ -1,155 +1,130 @@
-import React from 'react';
 import { motion } from 'framer-motion';
-import { ShoppingBag, Search, User, Heart, ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { ShoppingBag, Search, User, Zap, ShieldCheck, Activity, ArrowRight, Instagram, Twitter, Facebook, LogOut } from 'lucide-react';
 
-const homeImage = "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=2000&auto=format&fit=crop";
+const heroImage = "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=2000&auto=format&fit=crop";
 
 export const Home = () => {
+    const { user, logout } = useAuth();
+
     return (
-        <div className="min-h-screen bg-background">
+        <div className="min-h-screen bg-background text-foreground font-sans">
             {/* Navigation */}
-            <nav className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-md border-b border-muted">
+            <nav className="fixed top-0 w-full z-50 bg-black/80 backdrop-blur-md border-b border-white/5">
                 <div className="container mx-auto px-6 h-20 flex items-center justify-between">
-                    <div className="text-2xl font-display font-bold tracking-tighter">ONLINESTORE</div>
-
-                    <div className="hidden md:flex items-center space-x-10 text-sm font-medium uppercase tracking-widest">
-                        <a href="#" className="hover:text-accent transition-colors">Home</a>
-                        <a href="#" className="hover:text-accent transition-colors">Shop</a>
-                        <a href="#" className="hover:text-accent transition-colors">Product</a>
-                        <a href="#" className="hover:text-accent transition-colors">Blog</a>
-                        <a href="#" className="hover:text-accent transition-colors">Featured</a>
+                    <div className="flex items-center gap-12">
+                        <Link to="/" className="text-3xl font-display uppercase tracking-widest text-primary italic">
+                            Apex<span className="text-white">Labs</span>
+                        </Link>
+                        <div className="hidden md:flex items-center gap-8 uppercase font-display text-sm tracking-widest">
+                            <a href="#" className="hover:text-primary transition-colors">Rendimiento</a>
+                            <a href="#" className="hover:text-primary transition-colors">Recuperación</a>
+                            <a href="#" className="hover:text-primary transition-colors">Bienestar</a>
+                            <a href="#" className="hover:text-primary transition-colors">Packs</a>
+                        </div>
                     </div>
+                    <div className="flex items-center gap-6">
+                        <button className="hover:text-primary transition-colors"><Search size={22} /></button>
 
-                    <div className="flex items-center space-x-6">
-                        <Search className="w-5 h-5 cursor-pointer hover:text-accent transition-colors" />
-                        <User className="w-5 h-5 cursor-pointer hover:text-accent transition-colors" />
-                        <div className="relative cursor-pointer hover:text-accent transition-colors">
-                            <Heart className="w-5 h-5" />
-                            <span className="absolute -top-2 -right-2 bg-accent text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center">0</span>
-                        </div>
-                        <div className="relative cursor-pointer hover:text-accent transition-colors">
-                            <ShoppingBag className="w-5 h-5" />
-                            <span className="absolute -top-2 -right-2 bg-primary text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center">0</span>
-                        </div>
+                        {user ? (
+                            <div className="flex items-center gap-4">
+                                <span className="text-[10px] uppercase tracking-widest font-bold text-primary italic">Hola, {user.firstName}</span>
+                                <button onClick={logout} className="hover:text-primary transition-colors"><LogOut size={22} /></button>
+                            </div>
+                        ) : (
+                            <Link to="/login" className="hover:text-primary transition-colors"><User size={22} /></Link>
+                        )}
+
+                        <button className="relative hover:text-primary transition-colors">
+                            <ShoppingBag size={22} />
+                            <span className="absolute -top-2 -right-2 bg-primary text-black text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center">0</span>
+                        </button>
                     </div>
                 </div>
             </nav>
 
             {/* Hero Section */}
-            <section className="relative h-[90vh] flex items-center justify-center overflow-hidden pt-20">
-                <div className="absolute inset-x-6 inset-y-10 rounded-3xl overflow-hidden">
-                    <img
-                        src={homeImage}
-                        alt="Hero"
-                        className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-black/10"></div>
+            <section className="relative h-screen flex items-center pt-20 overflow-hidden">
+                <div className="absolute inset-0 z-0">
+                    <img src={heroImage} className="w-full h-full object-cover grayscale brightness-[0.4]" alt="Hero" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-black via-black/40 to-transparent" />
                 </div>
 
-                <div className="relative text-center text-white px-6">
-                    <motion.h1
-                        initial={{ opacity: 0, y: 30 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8 }}
-                        className="text-6xl md:text-8xl font-display font-light mb-8 leading-tight"
-                    >
-                        The Art of Modern<br />Interior Living
-                    </motion.h1>
+                <div className="container mx-auto px-6 relative z-10">
                     <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.5, duration: 0.8 }}
+                        initial={{ opacity: 0, x: -50 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.8 }}
+                        className="max-w-3xl"
                     >
-                        <button className="bg-white text-primary px-10 py-4 rounded-full font-medium hover:bg-accent hover:text-white transition-all duration-300 flex items-center mx-auto space-x-2">
-                            <span>EXPLORE NOW</span>
-                            <ArrowRight className="w-4 h-4" />
-                        </button>
+                        <h2 className="text-primary font-display uppercase tracking-[0.3em] mb-4 text-glow italic">Supera Tus Límites</h2>
+                        <h1 className="text-7xl md:text-9xl font-display uppercase leading-none mb-8">
+                            Combustible <br /> <span className="text-primary italic">Elite</span> Para <br /> Atletas
+                        </h1>
+                        <p className="text-xl text-muted-foreground mb-12 max-w-xl font-light leading-relaxed">
+                            Diseñado para humanos de alto rendimiento. Fórmulas respaldadas por la ciencia para llevar tu cuerpo más allá de su umbral natural.
+                        </p>
+                        <div className="flex flex-wrap gap-6">
+                            <button className="btn-primary group">
+                                Ver Todos Los Productos <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+                            </button>
+                            <button className="px-8 py-3 border border-white/20 uppercase font-display tracking-widest hover:bg-white hover:text-black transition-all">
+                                Packs Exclusivos
+                            </button>
+                        </div>
                     </motion.div>
                 </div>
+
+                {/* Vertical Scroll Indicator */}
+                <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4 border-l border-primary/30 h-24" />
             </section>
 
             {/* Features Bar */}
-            <section className="py-12 border-b border-muted bg-white">
-                <div className="container mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8 text-center uppercase tracking-widest text-[10px] font-bold text-gray-400">
-                    <div className="flex flex-col items-center space-y-4">
-                        <div className="w-10 h-10 border border-muted rounded-full flex items-center justify-center">🚢</div>
-                        <p>Free Shipping Over $50</p>
-                    </div>
-                    <div className="flex flex-col items-center space-y-4">
-                        <div className="w-10 h-10 border border-muted rounded-full flex items-center justify-center">🛡️</div>
-                        <p>Quality Assurance</p>
-                    </div>
-                    <div className="flex flex-col items-center space-y-4">
-                        <div className="w-10 h-10 border border-muted rounded-full flex items-center justify-center">🔄</div>
-                        <p>Return within 14 days</p>
-                    </div>
-                    <div className="flex flex-col items-center space-y-4">
-                        <div className="w-10 h-10 border border-muted rounded-full flex items-center justify-center">💬</div>
-                        <p>Support 24/7</p>
-                    </div>
-                </div>
-            </section>
-
-            {/* Categories Grid (Aesthetics from image) */}
-            <section className="py-24 container mx-auto px-6">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 h-[600px]">
-                    <div className="md:col-span-1 border border-muted rounded-2xl overflow-hidden relative group cursor-pointer">
-                        <img src="https://images.unsplash.com/photo-1584622650111-993a426fbf0a?q=80&w=800" className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" alt="Bathroom" />
-                        <div className="absolute bottom-6 left-6 text-white text-2xl font-display">Bathroom</div>
-                    </div>
-                    <div className="md:col-span-1 border border-muted rounded-2xl overflow-hidden relative group cursor-pointer">
-                        <img src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?q=80&w=800" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt="Chair" />
-                        <div className="absolute bottom-6 left-6 text-white text-2xl font-display">Chair</div>
-                    </div>
-                    <div className="md:col-span-1 border border-muted rounded-2xl overflow-hidden relative group cursor-pointer">
-                        <img src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?q=80&w=800" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" alt="Decor" />
-                        <div className="absolute bottom-6 left-6 text-white text-2xl font-display">Decor</div>
-                    </div>
-                    <div className="md:col-span-1 border border-muted rounded-2xl overflow-hidden relative group cursor-pointer">
-                        <img src="https://images.unsplash.com/photo-1507473885765-e6ed03ac1b11?q=80&w=800" className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" alt="Lamp" />
-                        <div className="absolute bottom-6 left-6 text-white text-2xl font-display">Lamp</div>
-                    </div>
-                </div>
-            </section>
-            {/* Bestseller Section */}
-            <section className="py-24 bg-white">
-                <div className="container mx-auto px-6">
-                    <div className="flex items-end justify-between mb-16">
-                        <div>
-                            <span className="text-[10px] uppercase tracking-widest font-bold text-accent mb-2 block">Our Selection</span>
-                            <h2 className="text-4xl font-display">Bestsellers</h2>
+            <div className="bg-primary py-4">
+                <div className="flex overflow-hidden whitespace-nowrap">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                        <div key={i} className="flex items-center gap-12 text-black font-display uppercase font-bold tracking-[0.2em] px-6">
+                            <span>Envío global gratuito</span>
+                            <span className="text-xl opacity-20">•</span>
+                            <span>Garantía de devolución</span>
+                            <span className="text-xl opacity-20">•</span>
+                            <span>Probado en laboratorio</span>
+                            <span className="text-xl opacity-20">•</span>
                         </div>
-                        <button className="text-sm font-bold border-b-2 border-primary pb-1 hover:text-accent hover:border-accent transition-all">VIEW ALL</button>
+                    ))}
+                </div>
+            </div>
+
+            {/* Product Category Grid */}
+            <section className="py-24 px-6 bg-black">
+                <div className="container mx-auto">
+                    <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
+                        <div>
+                            <h2 className="text-5xl font-display italic uppercase mb-4">Selecciona Tu <span className="text-primary">Objetivo</span></h2>
+                            <p className="text-muted-foreground max-w-md">Alcanza tus metas con precisión mediante nuestras formulaciones especializadas.</p>
+                        </div>
+                        <button className="text-primary uppercase font-display tracking-widest border-b border-primary/30 pb-2 hover:border-primary transition-all">Ver Todos Los Laboratorios</button>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-                        {[1, 2, 3, 4].map((i) => (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+                        {[
+                            { name: 'Ganar masa muscular', icon: <Activity size={40} />, desc: 'Proteínas y Aminoácidos', img: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=800' },
+                            { name: 'Mejorar rendimiento', icon: <Zap size={40} />, desc: 'Energía y Resistencia', img: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=800' },
+                            { name: 'Perder grasa', icon: <ShieldCheck size={40} />, desc: 'Definición y Metabolismo', img: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=800' },
+                        ].map((cat, idx) => (
                             <motion.div
-                                key={i}
+                                key={idx}
                                 whileHover={{ y: -10 }}
-                                className="group cursor-pointer"
+                                className="card-premium h-[500px] flex flex-col justify-end group cursor-pointer"
                             >
-                                <div className="relative aspect-[4/5] bg-[#F4F4F4] rounded-2xl overflow-hidden mb-6">
-                                    {i === 1 && <span className="absolute top-4 left-4 bg-red-500 text-white text-[10px] px-2 py-1 rounded-md">-10%</span>}
-                                    {i === 3 && <span className="absolute top-4 left-4 bg-black text-white text-[10px] px-2 py-1 rounded-md uppercase">Out of stock</span>}
-
-                                    <img
-                                        src={`https://images.unsplash.com/photo-1592078615290-033ee584e267?q=80&w=800&auto=format&fit=crop`}
-                                        alt="Product"
-                                        className="w-full h-full object-cover mix-blend-multiply group-hover:scale-110 transition-transform duration-700"
-                                    />
-
-                                    <div className="absolute inset-x-4 bottom-4 translate-y-12 group-hover:translate-y-0 transition-transform duration-300">
-                                        <button className="w-full bg-primary text-white py-3 rounded-xl font-medium text-sm flex items-center justify-center space-x-2">
-                                            <ShoppingBag className="w-4 h-4" />
-                                            <span>ADD TO CART</span>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div className="text-center">
-                                    <p className="text-gray-400 text-[10px] uppercase tracking-widest mb-1">Collection</p>
-                                    <h3 className="font-medium text-lg mb-1">Product Name {i}</h3>
-                                    <p className="font-display font-bold text-accent">$299.00</p>
+                                <img src={cat.img} className="absolute inset-0 w-full h-full object-cover opacity-40 group-hover:scale-105 group-hover:opacity-60 transition-all duration-700" alt={cat.name} />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
+                                <div className="relative z-10">
+                                    <div className="text-primary mb-4 italic">{cat.icon}</div>
+                                    <h3 className="text-3xl font-display uppercase mb-2">{cat.name}</h3>
+                                    <p className="text-sm text-muted-foreground uppercase tracking-widest mb-6">{cat.desc}</p>
+                                    <div className="h-1 w-12 bg-primary group-hover:w-full transition-all duration-300" />
                                 </div>
                             </motion.div>
                         ))}
@@ -158,52 +133,38 @@ export const Home = () => {
             </section>
 
             {/* Footer */}
-            <footer className="bg-primary text-white pt-24 pb-12">
-                <div className="container mx-auto px-6">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-20">
-                        <div className="md:col-span-1">
-                            <div className="text-3xl font-display font-bold tracking-tighter mb-8">ONLINESTORE</div>
-                            <p className="text-gray-400 text-sm leading-relaxed mb-8">
-                                Providing modern interior solutions for contemporary living spaces since 2024.
-                            </p>
-                        </div>
-
-                        <div>
-                            <h4 className="font-display text-lg mb-8">Shop</h4>
-                            <ul className="space-y-4 text-gray-400 text-sm">
-                                <li><a href="#" className="hover:text-white transition-colors">All Products</a></li>
-                                <li><a href="#" className="hover:text-white transition-colors">New Arrivals</a></li>
-                                <li><a href="#" className="hover:text-white transition-colors">Best Sellers</a></li>
-                                <li><a href="#" className="hover:text-white transition-colors">Categories</a></li>
-                            </ul>
-                        </div>
-
-                        <div>
-                            <h4 className="font-display text-lg mb-8">Support</h4>
-                            <ul className="space-y-4 text-gray-400 text-sm">
-                                <li><a href="#" className="hover:text-white transition-colors">Contact Us</a></li>
-                                <li><a href="#" className="hover:text-white transition-colors">Shipping Policy</a></li>
-                                <li><a href="#" className="hover:text-white transition-colors">Return & Refund</a></li>
-                                <li><a href="#" className="hover:text-white transition-colors">FAQ</a></li>
-                            </ul>
-                        </div>
-
-                        <div>
-                            <h4 className="font-display text-lg mb-8">Newsletter</h4>
-                            <p className="text-gray-400 text-sm mb-6">Stay updated on our latest collections.</p>
-                            <div className="flex border-b border-gray-700 pb-2">
-                                <input type="email" placeholder="Your email address" className="bg-transparent border-none text-white text-sm focus:outline-none w-full" />
-                                <button className="text-accent uppercase text-xs font-bold tracking-widest">Join</button>
-                            </div>
+            <footer className="bg-muted border-t border-white/5 py-20 px-6">
+                <div className="container mx-auto grid grid-cols-1 md:grid-cols-4 gap-16">
+                    <div className="col-span-2">
+                        <Link to="/" className="text-4xl font-display uppercase tracking-widest text-primary italic mb-8 block">
+                            Apex<span className="text-white">Labs</span>
+                        </Link>
+                        <p className="text-muted-foreground max-w-sm mb-10 text-lg">
+                            Fundado por atletas de élite para individuos de alto rendimiento. No nos conformamos con lo "suficiente".
+                        </p>
+                        <div className="flex gap-6">
+                            <Instagram className="hover:text-primary cursor-pointer transition-colors" />
+                            <Twitter className="hover:text-primary cursor-pointer transition-colors" />
+                            <Facebook className="hover:text-primary cursor-pointer transition-colors" />
                         </div>
                     </div>
-
-                    <div className="pt-12 border-t border-gray-800 flex flex-col md:row items-center justify-between text-[10px] text-gray-500 uppercase tracking-[0.2em]">
-                        <p>© 2024 OnlineStore. All rights reserved.</p>
-                        <div className="flex space-x-6 mt-6 md:mt-0">
-                            <a href="#">Privacy Policy</a>
-                            <a href="#">Terms of Service</a>
-                        </div>
+                    <div>
+                        <h4 className="font-display uppercase tracking-widest text-white mb-8">Navegación</h4>
+                        <ul className="space-y-4 text-muted-foreground uppercase text-xs tracking-widest">
+                            <li><a href="#" className="hover:text-primary">Suplementos</a></li>
+                            <li><a href="#" className="hover:text-primary">Accesorios</a></li>
+                            <li><a href="#" className="hover:text-primary">Artículos</a></li>
+                            <li><a href="#" className="hover:text-primary">Programa Pro</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 className="font-display uppercase tracking-widest text-white mb-8">Soporte</h4>
+                        <ul className="space-y-4 text-muted-foreground uppercase text-xs tracking-widest">
+                            <li><a href="#" className="hover:text-primary">Estado del Pedido</a></li>
+                            <li><a href="#" className="hover:text-primary">Información de Envío</a></li>
+                            <li><a href="#" className="hover:text-primary">FAQ</a></li>
+                            <li><a href="#" className="hover:text-primary">Contacto</a></li>
+                        </ul>
                     </div>
                 </div>
             </footer>
