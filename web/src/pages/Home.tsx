@@ -28,9 +28,14 @@ export const Home = () => {
                         <button className="hover:text-primary transition-colors"><Search size={22} /></button>
 
                         {user ? (
-                            <div className="flex items-center gap-4">
-                                <span className="text-[10px] uppercase tracking-widest font-bold text-primary italic">Hola, {user.firstName}</span>
-                                <button onClick={logout} className="hover:text-primary transition-colors"><LogOut size={22} /></button>
+                            <div className="flex items-center gap-6">
+                                {user.role === 'ADMIN' && (
+                                    <Link to="/admin" className="text-[10px] uppercase font-bold text-primary border border-primary/30 px-3 py-1 rounded hover:bg-primary hover:text-black transition-all italic">Panel Admin</Link>
+                                )}
+                                <div className="flex items-center gap-4">
+                                    <span className="text-[10px] uppercase tracking-widest font-bold text-primary italic">Hola, {user.firstName}</span>
+                                    <button onClick={logout} className="hover:text-primary transition-colors"><LogOut size={22} /></button>
+                                </div>
                             </div>
                         ) : (
                             <Link to="/login" className="hover:text-primary transition-colors"><User size={22} /></Link>

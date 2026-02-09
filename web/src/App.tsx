@@ -3,6 +3,7 @@ import { Home } from './pages/Home';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { AuthProvider } from './context/AuthContext';
+import { ProtectedRoute } from './components/ProtectedRoute';
 import { AdminLayout } from './admin/AdminLayout';
 import { Dashboard } from './admin/Dashboard';
 import { AdminProducts } from './admin/AdminProducts';
@@ -16,10 +17,22 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
-        {/* Admin Routes */}
-        <Route path="/admin" element={<AdminLayout children={<Dashboard />} />} />
-        <Route path="/admin/products" element={<AdminLayout children={<AdminProducts />} />} />
-        <Route path="/admin/categories" element={<AdminLayout children={<AdminCategories />} />} />
+        {/* Rutas de Administración Protegidas */}
+        <Route path="/admin" element={
+          <ProtectedRoute adminOnly>
+            <AdminLayout children={<Dashboard />} />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/products" element={
+          <ProtectedRoute adminOnly>
+            <AdminLayout children={<AdminProducts />} />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/categories" element={
+          <ProtectedRoute adminOnly>
+            <AdminLayout children={<AdminCategories />} />
+          </ProtectedRoute>
+        } />
 
         {/* Otras rutas se añadirán después */}
       </Routes>

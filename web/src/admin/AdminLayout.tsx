@@ -1,12 +1,12 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import {
     LayoutDashboard,
     Package,
     Layers,
     ShoppingCart,
     Users,
-    Settings,
     LogOut,
     Bell,
     Search
@@ -14,21 +14,25 @@ import {
 
 export const AdminLayout = ({ children }: { children: React.ReactNode }) => {
     const location = useLocation();
+    const { user, logout } = useAuth();
 
     const menuItems = [
         { icon: LayoutDashboard, label: 'Dashboard', path: '/admin' },
-        { icon: Package, label: 'Products', path: '/admin/products' },
-        { icon: Layers, label: 'Categories', path: '/admin/categories' },
-        { icon: ShoppingCart, label: 'Orders', path: '/admin/orders' },
-        { icon: Users, label: 'Customers', path: '/admin/customers' },
+        { icon: Package, label: 'Productos', path: '/admin/products' },
+        { icon: Layers, label: 'Categorías', path: '/admin/categories' },
+        { icon: ShoppingCart, label: 'Pedidos', path: '/admin/orders' },
+        { icon: Users, label: 'Clientes', path: '/admin/customers' },
     ];
 
     return (
         <div className="flex h-screen bg-[#F0F2F5]">
             {/* Sidebar */}
-            <aside className="w-64 bg-primary text-white flex flex-col">
+            <aside className="w-64 bg-black border-r border-white/5 flex flex-col">
                 <div className="p-8">
-                    <div className="text-xl font-display font-bold tracking-tighter">ONLINESTORE <span className="text-[10px] bg-accent px-2 py-1 rounded ml-2">ADMIN</span></div>
+                    <div className="text-xl font-display font-bold tracking-tighter text-primary italic">
+                        APEX<span className="text-white">LABS</span>
+                        <span className="text-[10px] bg-primary text-black px-2 py-0.5 rounded ml-2 not-italic font-bold tracking-widest">ADMIN</span>
+                    </div>
                 </div>
 
                 <nav className="flex-1 px-4 space-y-2">
@@ -37,8 +41,8 @@ export const AdminLayout = ({ children }: { children: React.ReactNode }) => {
                             key={item.path}
                             to={item.path}
                             className={`flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${location.pathname === item.path
-                                    ? 'bg-accent text-white shadow-lg'
-                                    : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                                ? 'bg-primary text-black shadow-[0_0_15px_rgba(204,255,0,0.3)]'
+                                : 'text-gray-400 hover:bg-white/5 hover:text-white'
                                 }`}
                         >
                             <item.icon className="w-5 h-5" />
@@ -47,10 +51,13 @@ export const AdminLayout = ({ children }: { children: React.ReactNode }) => {
                     ))}
                 </nav>
 
-                <div className="p-4 border-t border-gray-800">
-                    <button className="flex items-center space-x-3 px-4 py-3 w-full text-gray-400 hover:text-white transition-colors">
+                <div className="p-4 border-t border-white/5">
+                    <button
+                        onClick={logout}
+                        className="flex items-center space-x-3 px-4 py-3 w-full text-gray-400 hover:text-red-500 transition-colors"
+                    >
                         <LogOut className="w-5 h-5" />
-                        <span className="font-medium text-sm">Logout</span>
+                        <span className="font-medium text-sm">Cerrar Sesión</span>
                     </button>
                 </div>
             </aside>
@@ -63,8 +70,8 @@ export const AdminLayout = ({ children }: { children: React.ReactNode }) => {
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                         <input
                             type="text"
-                            placeholder="Search anything..."
-                            className="w-full pl-10 pr-4 py-2 bg-gray-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-accent"
+                            placeholder="Buscar en el laboratorio..."
+                            className="w-full pl-10 pr-4 py-2 bg-gray-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-primary"
                         />
                     </div>
 
@@ -75,11 +82,11 @@ export const AdminLayout = ({ children }: { children: React.ReactNode }) => {
                         </button>
                         <div className="flex items-center space-x-3 border-l pl-6">
                             <div className="text-right">
-                                <p className="text-sm font-bold">Admin User</p>
-                                <p className="text-[10px] text-gray-400 uppercase tracking-widest">Manager</p>
+                                <p className="text-sm font-bold">{user?.firstName} {user?.lastName}</p>
+                                <p className="text-[10px] text-gray-400 uppercase tracking-widest">Administrador Élite</p>
                             </div>
-                            <div className="w-10 h-10 bg-accent rounded-full flex items-center justify-center text-white font-bold">
-                                A
+                            <div className="w-10 h-10 bg-black rounded-full flex items-center justify-center text-primary font-bold border border-primary/20 italic">
+                                {user?.firstName?.charAt(0)}
                             </div>
                         </div>
                     </div>

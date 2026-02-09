@@ -58,75 +58,79 @@ async function main() {
     });
 
     // Create Categories
-    const performance = await prisma.category.create({
-        data: { name: 'Mejorar rendimiento', slug: 'mejorar-rendimiento', description: 'Potenciadores de energía, resistencia y fuerza.' },
+    const proteina = await prisma.category.create({
+        data: { name: 'Proteína', slug: 'proteina', description: 'Proteína de suero y aislados para construcción muscular.' },
     });
 
-    const recovery = await prisma.category.create({
-        data: { name: 'Ganar masa muscular', slug: 'ganar-masa-muscular', description: 'Proteína y aminoácidos para el crecimiento muscular.' },
+    const creatina = await prisma.category.create({
+        data: { name: 'Creatina', slug: 'creatina', description: 'Creatina monohidratada para fuerza y potencia.' },
     });
 
-    const wellness = await prisma.category.create({
-        data: { name: 'Perder grasa', slug: 'perder-grasa', description: 'Optimizadores metabólicos y quema de grasa.' },
+    const quemadores = await prisma.category.create({
+        data: { name: 'Quemadores', slug: 'quemadores', description: 'Termogénicos y lipotrópicos para pérdida de grasa.' },
+    });
+
+    const bcaa = await prisma.category.create({
+        data: { name: 'BCAA', slug: 'bcaa', description: 'Aminoácidos de cadena ramificada para recuperación.' },
     });
 
     // Create Products
     const products = [
         {
-            name: 'Apex Pure Whey',
-            slug: 'apex-pure-whey',
-            description: 'Ultra-filtered whey protein isolate for maximum absorption.',
-            price: '54.99',
+            name: 'ISO Apex Whey',
+            slug: 'iso-apex-whey',
+            description: 'Aislado de proteína de suero puro de alta absorción y 0 carbohidratos.',
+            price: '64.99',
             stock: 100,
-            categoryId: recovery.id,
-            images: ['https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=800'],
+            categoryId: proteina.id,
+            images: ['https://images.unsplash.com/photo-1593095191850-2a7330053bb4?q=80&w=800'],
             metadata: {
                 protein: '25g',
-                carbs: '2g',
+                carbs: '0g',
                 servings: 30,
-                flavor: 'Nitro Chocolate',
+                flavor: 'Vainilla Glacial',
             },
         },
         {
-            name: 'Nitro Pre-Workout',
-            slug: 'nitro-pre-workout',
-            description: 'Explosive energy and laser focus for your most intense sessions.',
-            price: '39.99',
-            stock: 75,
-            categoryId: performance.id,
-            images: ['https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=800'],
-            metadata: {
-                caffeine: '300mg',
-                betaAlanine: '3.2g',
-                flavor: 'Electric Lime',
-            },
-        },
-        {
-            name: 'Daily Optimizer Multivitamin',
-            slug: 'daily-optimizer',
-            description: 'Full spectrum of essential vitamins and minerals for elite health.',
-            price: '24.99',
+            name: 'Apex Creatine Elite',
+            slug: 'apex-creatine-elite',
+            description: 'Creatina monohidratada micronizada para máxima pureza.',
+            price: '34.99',
             stock: 150,
-            categoryId: wellness.id,
+            categoryId: creatina.id,
+            images: ['https://images.unsplash.com/photo-1579722820308-d74e5719d38e?q=80&w=800'],
+            metadata: {
+                purity: '100%',
+                servings: 60,
+                type: 'Monohydrate',
+            },
+        },
+        {
+            name: 'Thermal Burn X',
+            slug: 'thermal-burn-x',
+            description: 'Quemador de grasa termogénico de alta intensidad.',
+            price: '44.99',
+            stock: 50,
+            categoryId: quemadores.id,
             images: ['https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=800'],
             metadata: {
-                count: 60,
-                form: 'Capsule',
-                focus: 'Immunity',
+                capsules: 90,
+                intensity: 'Extreme',
+                phases: 'Fast Release',
             },
         },
         {
             name: 'Apex BCAA 2:1:1',
-            slug: 'apex-bcaa',
-            description: 'Intra-workout hydration and muscle sparing formula.',
+            slug: 'apex-bcaa-recovery',
+            description: 'Aminoácidos esenciales para recuperación y resistencia intra-entreno.',
             price: '29.99',
-            stock: 90,
-            categoryId: recovery.id,
-            images: ['https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=800'],
+            stock: 200,
+            categoryId: bcaa.id,
+            images: ['https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=800'],
             metadata: {
-                bcaas: '7g',
+                ratio: '2:1:1',
                 sugar: '0g',
-                flavor: 'Vibrant Orange',
+                servings: 30,
             },
         },
     ];
