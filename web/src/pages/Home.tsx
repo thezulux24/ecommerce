@@ -1,59 +1,41 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { ShoppingBag, Search, User, Zap, ShieldCheck, Activity, ArrowRight, Instagram, Twitter, Facebook, LogOut } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
+import {
+    Zap, ShieldCheck, Activity, ArrowRight, Truck, CreditCard, MessageCircle
+} from 'lucide-react';
+import { ProductCard } from '../components/ProductCard';
 
+const API_BASE = 'http://localhost:3000';
 const heroImage = "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=2000&auto=format&fit=crop";
 
 export const Home = () => {
-    const { user, logout } = useAuth();
+    const [bestSellers, setBestSellers] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchBestSellers = async () => {
+            try {
+                const res = await axios.get(`${API_BASE}/products`);
+                // Simulamos "más vendidos" con los primeros 4
+                setBestSellers(res.data.slice(0, 4));
+            } catch (err) {
+                console.error('Error fetching best sellers:', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchBestSellers();
+    }, []);
 
     return (
-        <div className="min-h-screen bg-background text-foreground font-sans">
-            {/* Navigation */}
-            <nav className="fixed top-0 w-full z-50 bg-black/80 backdrop-blur-md border-b border-white/5">
-                <div className="container mx-auto px-6 h-20 flex items-center justify-between">
-                    <div className="flex items-center gap-12">
-                        <Link to="/" className="text-3xl font-display uppercase tracking-widest text-primary italic">
-                            Apex<span className="text-white">Labs</span>
-                        </Link>
-                        <div className="hidden md:flex items-center gap-8 uppercase font-display text-sm tracking-widest">
-                            <a href="#" className="hover:text-primary transition-colors">Rendimiento</a>
-                            <a href="#" className="hover:text-primary transition-colors">Recuperación</a>
-                            <a href="#" className="hover:text-primary transition-colors">Bienestar</a>
-                            <a href="#" className="hover:text-primary transition-colors">Packs</a>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-6">
-                        <button className="hover:text-primary transition-colors"><Search size={22} /></button>
-
-                        {user ? (
-                            <div className="flex items-center gap-6">
-                                {user.role === 'ADMIN' && (
-                                    <Link to="/admin" className="text-[10px] uppercase font-bold text-primary border border-primary/30 px-3 py-1 rounded hover:bg-primary hover:text-black transition-all italic">Panel Admin</Link>
-                                )}
-                                <div className="flex items-center gap-4">
-                                    <span className="text-[10px] uppercase tracking-widest font-bold text-primary italic">Hola, {user.firstName}</span>
-                                    <button onClick={logout} className="hover:text-primary transition-colors"><LogOut size={22} /></button>
-                                </div>
-                            </div>
-                        ) : (
-                            <Link to="/login" className="hover:text-primary transition-colors"><User size={22} /></Link>
-                        )}
-
-                        <button className="relative hover:text-primary transition-colors">
-                            <ShoppingBag size={22} />
-                            <span className="absolute -top-2 -right-2 bg-primary text-black text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center">0</span>
-                        </button>
-                    </div>
-                </div>
-            </nav>
-
+        <div className="bg-background">
             {/* Hero Section */}
-            <section className="relative h-screen flex items-center pt-20 overflow-hidden">
+            <section className="relative min-h-[90vh] flex items-center pt-10 overflow-hidden">
                 <div className="absolute inset-0 z-0">
-                    <img src={heroImage} className="w-full h-full object-cover grayscale brightness-[0.4]" alt="Hero" />
-                    <div className="absolute inset-0 bg-gradient-to-r from-black via-black/40 to-transparent" />
+                    <img src={heroImage} className="w-full h-full object-cover grayscale brightness-[0.3]" alt="Hero" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-background via-background/60 to-transparent" />
                 </div>
 
                 <div className="container mx-auto px-6 relative z-10">
@@ -61,118 +43,145 @@ export const Home = () => {
                         initial={{ opacity: 0, x: -50 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.8 }}
-                        className="max-w-3xl"
+                        className="max-w-4xl"
                     >
-                        <h2 className="text-primary font-display uppercase tracking-[0.3em] mb-4 text-glow italic">Supera Tus Límites</h2>
-                        <h1 className="text-7xl md:text-9xl font-display uppercase leading-none mb-8">
-                            Combustible <br /> <span className="text-primary italic">Elite</span> Para <br /> Atletas
+                        <div className="flex items-center gap-3 mb-6 bg-primary/10 w-fit px-4 py-1.5 rounded-full border border-primary/20 backdrop-blur-sm">
+                            <Zap size={14} className="text-primary" fill="currentColor" />
+                            <span className="text-primary font-display uppercase tracking-[0.2em] text-[10px] font-bold italic">Suplementación de Grado Militar</span>
+                        </div>
+
+                        <h1 className="text-7xl md:text-[120px] font-display uppercase leading-[0.85] mb-8 italic tracking-tighter">
+                            Combustible <br /> <span className="text-primary">Elite</span> Para <br /> Atletas
                         </h1>
-                        <p className="text-xl text-muted-foreground mb-12 max-w-xl font-light leading-relaxed">
-                            Diseñado para humanos de alto rendimiento. Fórmulas respaldadas por la ciencia para llevar tu cuerpo más allá de su umbral natural.
+
+                        <p className="text-lg text-gray-400 mb-12 max-w-xl font-medium leading-relaxed uppercase tracking-wide">
+                            Diseñado en laboratorios de alto rendimiento. Fórmulas puras para llevar tu cuerpo más allá de su umbral biológico.
                         </p>
-                        <div className="flex flex-wrap gap-6">
-                            <button className="btn-primary group">
-                                Ver Todos Los Productos <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
-                            </button>
-                            <button className="px-8 py-3 border border-white/20 uppercase font-display tracking-widest hover:bg-white hover:text-black transition-all">
-                                Packs Exclusivos
-                            </button>
+
+                        <div className="flex flex-wrap gap-6 mb-16">
+                            <Link to="/products" className="bg-primary text-black px-10 py-5 font-display font-bold uppercase tracking-[0.2em] hover:shadow-[0_0_40px_rgba(204,255,0,0.5)] transition-all flex items-center gap-4 italic group active:scale-95">
+                                Ver Catálogo <ArrowRight size={20} className="group-hover:translate-x-2 transition-transform" />
+                            </Link>
+                            <a href="https://wa.me/573000000000?text=Hola,%20quiero%20asesoria%20personalizada" target="_blank" rel="noreferrer" className="px-10 py-5 border border-white/20 uppercase font-display font-bold tracking-[0.2em] hover:bg-white hover:text-black transition-all flex items-center gap-3 italic">
+                                <MessageCircle size={18} /> Asesoría Expertos
+                            </a>
+                        </div>
+
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 pt-8 border-t border-white/5 opacity-60">
+                            <div className="flex items-center gap-3">
+                                <Truck size={20} className="text-primary" />
+                                <span className="text-[10px] uppercase font-bold tracking-widest text-white">Envío Nacional</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <ShieldCheck size={20} className="text-primary" />
+                                <span className="text-[10px] uppercase font-bold tracking-widest text-white">Garantía Apex</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <CreditCard size={20} className="text-primary" />
+                                <span className="text-[10px] uppercase font-bold tracking-widest text-white">Paga con PSE</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <Activity size={20} className="text-primary" />
+                                <span className="text-[10px] uppercase font-bold tracking-widest text-white">Pureza 100%</span>
+                            </div>
                         </div>
                     </motion.div>
                 </div>
-
-                {/* Vertical Scroll Indicator */}
-                <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4 border-l border-primary/30 h-24" />
             </section>
 
-            {/* Features Bar */}
-            <div className="bg-primary py-4">
+            {/* High Performance Features */}
+            <div className="bg-primary py-5 border-y border-black/10">
                 <div className="flex overflow-hidden whitespace-nowrap">
-                    {[1, 2, 3, 4, 5].map((i) => (
-                        <div key={i} className="flex items-center gap-12 text-black font-display uppercase font-bold tracking-[0.2em] px-6">
-                            <span>Envío global gratuito</span>
-                            <span className="text-xl opacity-20">•</span>
-                            <span>Garantía de devolución</span>
-                            <span className="text-xl opacity-20">•</span>
-                            <span>Probado en laboratorio</span>
-                            <span className="text-xl opacity-20">•</span>
-                        </div>
-                    ))}
+                    <motion.div
+                        animate={{ x: [0, -1000] }}
+                        transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+                        className="flex items-center gap-20 text-black font-display uppercase font-black tracking-[0.3em] px-6 text-sm italic"
+                    >
+                        {[1, 2, 3, 4].map((i) => (
+                            <div key={i} className="flex items-center gap-20">
+                                <span>Envíos a toda Colombia</span>
+                                <span className="text-2xl">•</span>
+                                <span>Compra Segura PSE / Nequi</span>
+                                <span className="text-2xl">•</span>
+                                <span>Asesoría Profesional</span>
+                                <span className="text-2xl">•</span>
+                                <span>Resultados Garantizados</span>
+                                <span className="text-2xl">•</span>
+                            </div>
+                        ))}
+                    </motion.div>
                 </div>
             </div>
 
-            {/* Product Category Grid */}
-            <section className="py-24 px-6 bg-black">
+            {/* "Más Vendidos" Section */}
+            <section className="py-32 px-6 bg-black">
                 <div className="container mx-auto">
-                    <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
+                    <div className="flex flex-col md:flex-row justify-between items-end mb-20 gap-8">
                         <div>
-                            <h2 className="text-5xl font-display italic uppercase mb-4">Selecciona Tu <span className="text-primary">Objetivo</span></h2>
-                            <p className="text-muted-foreground max-w-md">Alcanza tus metas con precisión mediante nuestras formulaciones especializadas.</p>
+                            <div className="flex items-center gap-2 text-primary mb-4 font-bold tracking-[0.3em] uppercase text-xs">
+                                <span className="h-px w-8 bg-primary" /> Top del Laboratorio
+                            </div>
+                            <h2 className="text-6xl font-display italic uppercase mb-6 leading-none tracking-tighter">Más <span className="text-primary">Vendidos</span></h2>
+                            <p className="text-gray-400 text-lg max-w-md font-medium">Los favoritos de nuestra comunidad de alto rendimiento en Colombia.</p>
                         </div>
-                        <button className="text-primary uppercase font-display tracking-widest border-b border-primary/30 pb-2 hover:border-primary transition-all">Ver Todos Los Laboratorios</button>
+                        <Link to="/products" className="text-primary uppercase font-display font-bold tracking-[0.2em] border-b-2 border-primary/20 pb-3 hover:border-primary transition-all text-sm italic">Ver Todo el Arsenal</Link>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                        {loading ? (
+                            Array(4).fill(0).map((_, i) => (
+                                <div key={i} className="h-[500px] bg-white/5 rounded-[30px] animate-pulse border border-white/5" />
+                            ))
+                        ) : (
+                            bestSellers.map(product => (
+                                <ProductCard key={product.id} product={product} />
+                            ))
+                        )}
+                    </div>
+                </div>
+            </section>
+
+            {/* Product Category Grid */}
+            <section className="py-32 px-6 bg-background relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] -mr-64 -mt-64" />
+
+                <div className="container mx-auto relative z-10">
+                    <div className="flex flex-col md:flex-row justify-between items-end mb-20 gap-8">
+                        <div className="max-w-2xl">
+                            <div className="flex items-center gap-2 text-primary mb-4 font-bold tracking-[0.3em] uppercase text-xs">
+                                <span className="h-px w-8 bg-primary" /> Arsenal de Entrenamiento
+                            </div>
+                            <h2 className="text-6xl md:text-8xl font-display italic uppercase mb-6 leading-none tracking-tighter">Entrena Con <span className="text-primary">Propósito</span></h2>
+                            <p className="text-gray-400 text-lg max-w-md font-medium">No busques suplementos, busca objetivos. Selecciona tu meta y nosotros te damos la fórmula para alcanzarla.</p>
+                        </div>
+                        <Link to="/products" className="text-primary uppercase font-display font-bold tracking-[0.2em] border-b-2 border-primary/20 pb-3 hover:border-primary transition-all text-sm italic">Ver Por Categoría</Link>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         {[
                             { name: 'Ganar masa muscular', icon: <Activity size={40} />, desc: 'Proteínas y Aminoácidos', img: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=800' },
-                            { name: 'Mejorar rendimiento', icon: <Zap size={40} />, desc: 'Energía y Resistencia', img: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=800' },
-                            { name: 'Perder grasa', icon: <ShieldCheck size={40} />, desc: 'Definición y Metabolismo', img: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=800' },
+                            { name: 'Mejorar rendimiento', icon: <Zap size={40} />, desc: 'Pre-entrenos y Energía', img: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=800' },
+                            { name: 'Definición Extrema', icon: <ShieldCheck size={40} />, desc: 'Quemadores y Control', img: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=800' },
                         ].map((cat, idx) => (
                             <motion.div
                                 key={idx}
-                                whileHover={{ y: -10 }}
-                                className="card-premium h-[500px] flex flex-col justify-end group cursor-pointer"
+                                whileHover={{ y: -15 }}
+                                className="group relative h-[600px] rounded-[40px] overflow-hidden border border-white/5 cursor-pointer"
                             >
-                                <img src={cat.img} className="absolute inset-0 w-full h-full object-cover opacity-40 group-hover:scale-105 group-hover:opacity-60 transition-all duration-700" alt={cat.name} />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
-                                <div className="relative z-10">
-                                    <div className="text-primary mb-4 italic">{cat.icon}</div>
-                                    <h3 className="text-3xl font-display uppercase mb-2">{cat.name}</h3>
-                                    <p className="text-sm text-muted-foreground uppercase tracking-widest mb-6">{cat.desc}</p>
-                                    <div className="h-1 w-12 bg-primary group-hover:w-full transition-all duration-300" />
+                                <img src={cat.img} className="absolute inset-0 w-full h-full object-cover grayscale brightness-50 group-hover:grayscale-0 group-hover:scale-110 group-hover:brightness-75 transition-all duration-1000 ease-out" alt={cat.name} />
+                                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/60 to-transparent p-10 pt-32">
+                                    <div className="text-primary mb-6 transform group-hover:scale-110 transition-transform duration-500">{cat.icon}</div>
+                                    <h3 className="text-4xl font-display uppercase mb-3 italic tracking-tight">{cat.name}</h3>
+                                    <p className="text-xs text-gray-400 uppercase tracking-[0.3em] font-bold mb-8">{cat.desc}</p>
+                                    <div className="flex items-center gap-4 text-[10px] font-bold uppercase tracking-widest text-primary opacity-0 group-hover:opacity-100 transition-all translate-y-4 group-hover:translate-y-0">
+                                        Explorar Categoría <ArrowRight size={14} />
+                                    </div>
                                 </div>
                             </motion.div>
                         ))}
                     </div>
                 </div>
             </section>
-
-            {/* Footer */}
-            <footer className="bg-muted border-t border-white/5 py-20 px-6">
-                <div className="container mx-auto grid grid-cols-1 md:grid-cols-4 gap-16">
-                    <div className="col-span-2">
-                        <Link to="/" className="text-4xl font-display uppercase tracking-widest text-primary italic mb-8 block">
-                            Apex<span className="text-white">Labs</span>
-                        </Link>
-                        <p className="text-muted-foreground max-w-sm mb-10 text-lg">
-                            Fundado por atletas de élite para individuos de alto rendimiento. No nos conformamos con lo "suficiente".
-                        </p>
-                        <div className="flex gap-6">
-                            <Instagram className="hover:text-primary cursor-pointer transition-colors" />
-                            <Twitter className="hover:text-primary cursor-pointer transition-colors" />
-                            <Facebook className="hover:text-primary cursor-pointer transition-colors" />
-                        </div>
-                    </div>
-                    <div>
-                        <h4 className="font-display uppercase tracking-widest text-white mb-8">Navegación</h4>
-                        <ul className="space-y-4 text-muted-foreground uppercase text-xs tracking-widest">
-                            <li><a href="#" className="hover:text-primary">Suplementos</a></li>
-                            <li><a href="#" className="hover:text-primary">Accesorios</a></li>
-                            <li><a href="#" className="hover:text-primary">Artículos</a></li>
-                            <li><a href="#" className="hover:text-primary">Programa Pro</a></li>
-                        </ul>
-                    </div>
-                    <div>
-                        <h4 className="font-display uppercase tracking-widest text-white mb-8">Soporte</h4>
-                        <ul className="space-y-4 text-muted-foreground uppercase text-xs tracking-widest">
-                            <li><a href="#" className="hover:text-primary">Estado del Pedido</a></li>
-                            <li><a href="#" className="hover:text-primary">Información de Envío</a></li>
-                            <li><a href="#" className="hover:text-primary">FAQ</a></li>
-                            <li><a href="#" className="hover:text-primary">Contacto</a></li>
-                        </ul>
-                    </div>
-                </div>
-            </footer>
         </div>
     );
 };
