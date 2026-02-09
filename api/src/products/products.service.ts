@@ -23,7 +23,7 @@ export class ProductsService {
         }
         return this.prisma.product.findMany({
             where,
-            include: { images: true, category: true },
+            include: { images: true, category: true, brand: true },
         });
     }
 
@@ -35,7 +35,7 @@ export class ProductsService {
                     { slug: idOrSlug }
                 ]
             },
-            include: { images: true, category: true, reviews: { include: { user: true } } },
+            include: { images: true, category: true, brand: true, reviews: { include: { user: true } } },
         });
         if (!product) throw new NotFoundException(`Product ${idOrSlug} not found`);
         return product;

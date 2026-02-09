@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Plus, Edit2, Trash2, Search, Filter, X, Zap } from 'lucide-react';
+import { Plus, Edit2, Trash2, Search, X, Zap } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const API_BASE = 'http://localhost:3000';
@@ -9,6 +9,7 @@ export const AdminProducts = () => {
     const { token } = useAuth();
     const [products, setProducts] = useState<any[]>([]);
     const [categories, setCategories] = useState<any[]>([]);
+    const [brands, setBrands] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -18,6 +19,7 @@ export const AdminProducts = () => {
         price: '',
         stock: '',
         categoryId: '',
+        brandId: '',
         images: [''],
     });
 
@@ -41,9 +43,19 @@ export const AdminProducts = () => {
         }
     };
 
+    const fetchBrands = async () => {
+        try {
+            const res = await axios.get(`${API_BASE}/brands`);
+            setBrands(res.data);
+        } catch (err) {
+            console.error('Error fetching brands:', err);
+        }
+    };
+
     useEffect(() => {
         fetchProducts();
         fetchCategories();
+        fetchBrands();
     }, []);
 
     const handleDelete = async (id: string) => {
@@ -65,12 +77,13 @@ export const AdminProducts = () => {
                 ...formData,
                 price: parseFloat(formData.price),
                 stock: parseInt(formData.stock),
-                images: formData.images.filter(url => url.trim() !== '')
+                images: formData.images.filter(url => url.trim() !== ''),
+                slug: formData.name.toLowerCase().replace(/ /g, '-'),
             }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setIsModalOpen(false);
-            setFormData({ name: '', description: '', price: '', stock: '', categoryId: '', images: [''] });
+            setFormData({ name: '', description: '', price: '', stock: '', categoryId: '', brandId: '', images: [''] });
             fetchProducts();
         } catch (err) {
             alert('Error al crear producto');
@@ -105,10 +118,6 @@ export const AdminProducts = () => {
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                         <input type="text" placeholder="Buscar productos..." className="w-full pl-10 pr-4 py-2 bg-gray-50 border-none rounded-lg text-sm focus:ring-1 focus:ring-primary" />
                     </div>
-                    <button className="flex items-center space-x-2 text-sm text-gray-500 hover:text-primary">
-                        <Filter className="w-4 h-4" />
-                        <span>Filtros</span>
-                    </button>
                 </div>
 
                 <div className="overflow-x-auto">
@@ -116,6 +125,7 @@ export const AdminProducts = () => {
                         <thead className="bg-gray-50 text-gray-400 text-[10px] uppercase tracking-widest font-bold">
                             <tr>
                                 <th className="px-6 py-4">Producto</th>
+                                <th className="px-6 py-4">Marca</th>
                                 <th className="px-6 py-4">Categoría</th>
                                 <th className="px-6 py-4">Precio</th>
                                 <th className="px-6 py-4">Stock</th>
@@ -124,7 +134,7 @@ export const AdminProducts = () => {
                         </thead>
                         <tbody className="divide-y divide-gray-100 italic">
                             {loading ? (
-                                <tr><td colSpan={5} className="px-6 py-10 text-center animate-pulse text-gray-400">Escaneando laboratorios...</td></tr>
+                                <tr><td colSpan={6} className="px-6 py-10 text-center animate-pulse text-gray-400">Escaneando laboratorios...</td></tr>
                             ) : products.map((product) => (
                                 <tr key={product.id} className="hover:bg-gray-50/50 transition-colors group">
                                     <td className="px-6 py-4">
@@ -132,13 +142,14 @@ export const AdminProducts = () => {
                                             <div className="w-12 h-12 bg-black rounded-lg overflow-hidden border border-gray-100">
                                                 <img
                                                     src={product.images?.[0]?.url || 'https://via.placeholder.com/100?text=Apex'}
-                                                    className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all"
+                                                    className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all font-bold"
                                                     alt=""
                                                 />
                                             </div>
                                             <span className="text-sm font-bold text-black uppercase tracking-tight">{product.name}</span>
                                         </div>
                                     </td>
+                                    <td className="px-6 py-4 text-xs font-bold text-black uppercase tracking-widest italic">{product.brand?.name || 'Genérico'}</td>
                                     <td className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">{product.category?.name}</td>
                                     <td className="px-6 py-4 text-sm font-bold text-black underline decoration-primary decoration-4 underline-offset-4">${product.price}</td>
                                     <td className="px-6 py-4 text-sm font-bold text-black">{product.stock} <span className="text-[10px] text-gray-400 uppercase">unidades</span></td>
@@ -165,7 +176,7 @@ export const AdminProducts = () => {
             {/* Creation Modal */}
             {isModalOpen && (
                 <div className="fixed inset-0 z-[60] flex items-center justify-center p-6 bg-black/80 backdrop-blur-md">
-                    <div className="bg-black w-full max-w-2xl rounded-3xl overflow-hidden shadow-[0_0_50px_rgba(204,255,0,0.15)] relative border border-white/10 translate-y-0 text-white">
+                    <div className="bg-black w-full max-w-2xl rounded-3xl overflow-hidden shadow-[0_0_50px_rgba(204,255,0,0.15)] relative border border-white/10 text-white">
                         <div className="bg-black p-8 flex items-center justify-between border-b border-white/5">
                             <div>
                                 <h2 className="text-3xl font-display font-bold text-primary italic uppercase tracking-tighter">Nueva Fórmula</h2>
@@ -222,7 +233,7 @@ export const AdminProducts = () => {
                                         onChange={e => setFormData({ ...formData, stock: e.target.value })}
                                     />
                                 </div>
-                                <div className="col-span-2">
+                                <div>
                                     <label className="block text-[10px] uppercase font-bold text-gray-500 tracking-[0.2em] mb-2 px-1">Objetivo del Atleta</label>
                                     <select
                                         required
@@ -232,6 +243,17 @@ export const AdminProducts = () => {
                                     >
                                         <option value="" className="bg-black">Selecciona un objetivo</option>
                                         {categories.map(c => <option key={c.id} value={c.id} className="bg-black">{c.name}</option>)}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] uppercase font-bold text-gray-500 tracking-[0.2em] mb-2 px-1">Sello / Marca</label>
+                                    <select
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-bold text-white appearance-none cursor-pointer"
+                                        value={formData.brandId}
+                                        onChange={e => setFormData({ ...formData, brandId: e.target.value })}
+                                    >
+                                        <option value="" className="bg-black">Selecciona una marca</option>
+                                        {brands.map(b => <option key={b.id} value={b.id} className="bg-black">{b.name}</option>)}
                                     </select>
                                 </div>
                                 <div className="col-span-2">

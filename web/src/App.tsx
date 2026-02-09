@@ -14,6 +14,7 @@ import { AdminLayout } from './admin/AdminLayout';
 import { Dashboard } from './admin/Dashboard';
 import { AdminProducts } from './admin/AdminProducts';
 import { AdminCategories } from './admin/AdminCategories';
+import { AdminBrands } from './admin/AdminBrands';
 import { StoreLayout } from './components/StoreLayout';
 
 function App() {
@@ -47,6 +48,11 @@ function App() {
           <Route path="/admin/categories" element={
             <ProtectedRoute adminOnly>
               <AdminLayout children={<AdminCategories />} />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/brands" element={
+            <ProtectedRoute adminOnly>
+              <AdminLayout children={<AdminBrands />} />
             </ProtectedRoute>
           } />
         </Routes>

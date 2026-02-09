@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Plus, Edit2, Trash2, Folder, X, Zap } from 'lucide-react';
+import { Plus, Edit2, Trash2, Tag, X, Zap } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const API_BASE = 'http://localhost:3000';
 
-export const AdminCategories = () => {
+export const AdminBrands = () => {
     const { token } = useAuth();
-    const [categories, setCategories] = useState<any[]>([]);
+    const [brands, setBrands] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -15,49 +15,50 @@ export const AdminCategories = () => {
         name: '',
         slug: '',
         description: '',
+        logo: '',
     });
 
-    const fetchCategories = async () => {
+    const fetchBrands = async () => {
         try {
-            const res = await axios.get(`${API_BASE}/categories`);
-            setCategories(res.data);
+            const res = await axios.get(`${API_BASE}/brands`);
+            setBrands(res.data);
         } catch (err) {
-            console.error('Error fetching categories:', err);
+            console.error('Error fetching brands:', err);
         } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
-        fetchCategories();
+        fetchBrands();
     }, []);
 
     const handleDelete = async (id: string) => {
-        if (!window.confirm('¿Estás seguro de eliminar esta categoría?')) return;
+        if (!window.confirm('¿Estás seguro de eliminar esta marca?')) return;
         try {
-            await axios.delete(`${API_BASE}/categories/${id}`, {
+            await axios.delete(`${API_BASE}/brands/${id}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            fetchCategories();
+            fetchBrands();
         } catch (err) {
-            alert('Error al eliminar categoría');
+            alert('Error al eliminar marca');
         }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            await axios.post(`${API_BASE}/categories`, {
+            await axios.post(`${API_BASE}/brands`, {
                 ...formData,
                 slug: formData.slug || formData.name.toLowerCase().replace(/ /g, '-'),
             }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setIsModalOpen(false);
-            setFormData({ name: '', slug: '', description: '' });
-            fetchCategories();
+            setFormData({ name: '', slug: '', description: '', logo: '' });
+            fetchBrands();
         } catch (err) {
-            alert('Error al crear categoría');
+            alert('Error al crear marca');
         }
     };
 
@@ -65,38 +66,40 @@ export const AdminCategories = () => {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-display font-bold text-black uppercase italic tracking-tighter">Categorías de <span className="text-primary">Misión</span></h1>
-                    <p className="text-gray-400 text-sm">Define los objetivos para tus atletas</p>
+                    <h1 className="text-3xl font-display font-bold text-black uppercase italic tracking-tighter">Marcas de <span className="text-primary">Elite</span></h1>
+                    <p className="text-gray-400 text-sm">Gestiona los sellos de calidad de Apex</p>
                 </div>
                 <button
                     onClick={() => setIsModalOpen(true)}
                     className="bg-black text-primary px-6 py-3 rounded-xl text-sm font-bold hover:shadow-[0_0_20px_rgba(204,255,0,0.3)] transition-all flex items-center space-x-2 border border-primary/20 italic"
                 >
                     <Plus className="w-4 h-4" />
-                    <span className="uppercase tracking-widest">Nueva Categoría</span>
+                    <span className="uppercase tracking-widest">Nueva Marca</span>
                 </button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {loading ? (
-                    <div className="col-span-full py-10 text-center animate-pulse text-gray-400">Escaneando sectores...</div>
-                ) : categories.map((cat) => (
-                    <div key={cat.id} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:border-accent/30 transition-all group relative">
+                    <div className="col-span-full py-10 text-center animate-pulse text-gray-400">Escaneando laboratorios...</div>
+                ) : brands.map((brand) => (
+                    <div key={brand.id} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:border-accent/30 transition-all group relative">
                         <div className="flex items-start justify-between mb-4">
-                            <div className="p-3 bg-gray-50 rounded-xl group-hover:bg-accent/10 transition-colors">
-                                <Folder className="w-6 h-6 text-primary group-hover:text-accent transition-colors" />
+                            <div className="w-16 h-16 bg-gray-50 rounded-xl flex items-center justify-center border border-gray-100 group-hover:bg-accent/10 transition-colors">
+                                {brand.logo ? (
+                                    <img src={brand.logo} alt={brand.name} className="max-w-full max-h-full object-contain" />
+                                ) : (
+                                    <Tag className="w-8 h-8 text-primary group-hover:text-accent transition-colors" />
+                                )}
                             </div>
                             <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <button className="p-2 text-gray-400 hover:text-primary transition-colors"><Edit2 className="w-4 h-4" /></button>
-                                <button onClick={() => handleDelete(cat.id)} className="p-2 text-gray-400 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                                <button onClick={() => handleDelete(brand.id)} className="p-2 text-gray-400 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
                             </div>
                         </div>
-                        <h3 className="text-xl font-display font-bold mb-1 uppercase italic tracking-tight">{cat.name}</h3>
-                        <p className="text-gray-400 text-xs mb-4">{cat.description || 'Sin descripción'}</p>
+                        <h3 className="text-xl font-display font-bold mb-1 uppercase italic tracking-tight">{brand.name}</h3>
+                        <p className="text-gray-400 text-xs mb-4 line-clamp-2">{brand.description || 'Sin descripción'}</p>
                         <div className="flex items-center space-x-4 text-[10px] uppercase tracking-widest font-bold text-gray-400">
-                            <span>{cat.products?.length || 0} Productos</span>
-                            <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
-                            <span>{cat.children?.length || 0} Subcategorías</span>
+                            <span>{brand._count?.products || 0} Productos</span>
                         </div>
                     </div>
                 ))}
@@ -108,8 +111,8 @@ export const AdminCategories = () => {
                     <div className="bg-black w-full max-w-xl rounded-3xl overflow-hidden shadow-[0_0_50px_rgba(204,255,0,0.15)] relative border border-white/10 text-white">
                         <div className="p-8 flex items-center justify-between border-b border-white/5">
                             <div>
-                                <h2 className="text-3xl font-display font-bold text-primary italic uppercase tracking-tighter">Nueva Categoría</h2>
-                                <p className="text-gray-400 text-[10px] uppercase tracking-[0.2em] mt-1 font-bold">Define un nuevo objetivo de entrenamiento</p>
+                                <h2 className="text-3xl font-display font-bold text-primary italic uppercase tracking-tighter">Nueva Marca</h2>
+                                <p className="text-gray-400 text-[10px] uppercase tracking-[0.2em] mt-1 font-bold">Añade un nuevo sello al arsenal</p>
                             </div>
                             <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-white transition-colors bg-white/5 p-2 rounded-full">
                                 <X size={20} />
@@ -118,21 +121,31 @@ export const AdminCategories = () => {
 
                         <form onSubmit={handleSubmit} className="p-8 space-y-6">
                             <div>
-                                <label className="block text-[10px] uppercase font-bold text-gray-500 tracking-[0.2em] mb-2 px-1">Nombre de Categoría</label>
+                                <label className="block text-[10px] uppercase font-bold text-gray-500 tracking-[0.2em] mb-2 px-1">Nombre de la Marca</label>
                                 <input
                                     required
                                     type="text"
                                     className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-bold text-white placeholder:text-gray-700"
-                                    placeholder="Ej: MASA MUSCULAR"
+                                    placeholder="Ej: MUSCLE TECH"
                                     value={formData.name}
                                     onChange={e => setFormData({ ...formData, name: e.target.value })}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-[10px] uppercase font-bold text-gray-500 tracking-[0.2em] mb-2 px-1">Logo URL</label>
+                                <input
+                                    type="url"
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-bold text-white placeholder:text-gray-700"
+                                    placeholder="https://..."
+                                    value={formData.logo}
+                                    onChange={e => setFormData({ ...formData, logo: e.target.value })}
                                 />
                             </div>
                             <div>
                                 <label className="block text-[10px] uppercase font-bold text-gray-500 tracking-[0.2em] mb-2 px-1">Descripción</label>
                                 <textarea
                                     className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all h-24 text-white placeholder:text-gray-700 resize-none"
-                                    placeholder="Describe el propósito de esta categoría..."
+                                    placeholder="Historia o especialidad de la marca..."
                                     value={formData.description}
                                     onChange={e => setFormData({ ...formData, description: e.target.value })}
                                 ></textarea>
@@ -140,7 +153,7 @@ export const AdminCategories = () => {
 
                             <div className="pt-6">
                                 <button type="submit" className="w-full bg-primary text-black py-5 rounded-2xl font-display font-bold uppercase tracking-[0.2em] transition-all hover:shadow-[0_0_40px_rgba(204,255,0,0.5)] flex items-center justify-center gap-3 italic">
-                                    <Zap size={20} fill="black" /> Desplegar Categoría
+                                    <Zap size={20} fill="black" /> Registrar Marca
                                 </button>
                             </div>
                         </form>

@@ -9,7 +9,8 @@ import {
     Users,
     LogOut,
     Bell,
-    Search
+    Search,
+    Tag
 } from 'lucide-react';
 
 export const AdminLayout = ({ children }: { children: React.ReactNode }) => {
@@ -20,6 +21,7 @@ export const AdminLayout = ({ children }: { children: React.ReactNode }) => {
         { icon: LayoutDashboard, label: 'Dashboard', path: '/admin' },
         { icon: Package, label: 'Productos', path: '/admin/products' },
         { icon: Layers, label: 'Categorías', path: '/admin/categories' },
+        { icon: Tag, label: 'Marcas', path: '/admin/brands' },
         { icon: ShoppingCart, label: 'Pedidos', path: '/admin/orders' },
         { icon: Users, label: 'Clientes', path: '/admin/customers' },
     ];
