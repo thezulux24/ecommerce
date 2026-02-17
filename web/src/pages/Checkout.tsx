@@ -1,15 +1,20 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
-import { Truck, ShieldCheck, MapPin, CreditCard, Lock, ArrowLeft, CheckCircle } from 'lucide-react';
+import { ShieldCheck, MapPin, CreditCard, Lock, ArrowLeft, CheckCircle, Clock } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { formatCOP } from '../utils/formatters';
 
+const API_BASE = 'http://localhost:3000';
+
 export const Checkout = () => {
     const { cart, total, itemCount, clearCart } = useCart();
-    const { user } = useAuth();
+    const { user, token } = useAuth();
     const navigate = useNavigate();
     const [step, setStep] = useState(1);
+    const [loading, setLoading] = useState(false);
+    const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
     const [formData, setFormData] = useState({
         email: user?.email || '',
         firstName: user?.firstName || '',
@@ -22,13 +27,75 @@ export const Checkout = () => {
         paymentMethod: 'pse'
     });
 
+    useEffect(() => {
+        if (token) {
+            axios.get(`${API_BASE}/users/me/addresses`, {
+                headers: { Authorization: `Bearer ${token}` }
+            }).then(res => setSavedAddresses(res.data))
+                .catch(err => console.error('Error fetching addresses:', err));
+        }
+    }, [token]);
+
+    const selectSavedAddress = (addr: any) => {
+        setFormData({
+            ...formData,
+            address: addr.street,
+            city: addr.city,
+            department: addr.state,
+            phone: addr.phone || formData.phone,
+            firstName: addr.fullName?.split(' ')[0] || formData.firstName,
+            lastName: addr.fullName?.split(' ').slice(1).join(' ') || formData.lastName,
+        });
+    };
+
     const shippingCost = total >= 250000 ? 0 : 12000;
     const finalTotal = total + shippingCost;
 
-    const handleComplete = () => {
-        alert('Pedido recibido. En un entorno real, redirigiríamos a la pasarela de pagos.');
-        clearCart();
-        navigate('/');
+    const handleComplete = async () => {
+        if (!token) {
+            alert('Por favor inicia sesión para completar tu pedido.');
+            navigate('/login', { state: { from: '/checkout' } });
+            return;
+        }
+
+        if (!formData.address || !formData.city || !formData.phone) {
+            alert('Por favor completa todos los campos de envío.');
+            return;
+        }
+
+        setLoading(true);
+        try {
+            // Sincronizar el carrito de localStorage con el backend primero
+            await axios.post('http://localhost:3000/cart/sync', {
+                items: cart.map(item => ({
+                    productId: item.id,
+                    quantity: item.quantity
+                }))
+            }, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+
+            await axios.post('http://localhost:3000/orders', {
+                addressData: formData
+            }, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+
+            // Simulamos éxito inmediato como pidió el usuario
+            alert('¡ORDEN RECIBIDA! Tu pago ha sido procesado (Simulación). El Arsenal está en camino.');
+            clearCart();
+            setStep(3); // Podríamos ir a un paso de "Gracias"
+            setTimeout(() => navigate('/'), 3000);
+        } catch (error: any) {
+            console.error('Checkout error:', error);
+            alert(error.response?.data?.message || 'Error al procesar el pedido');
+        } finally {
+            setLoading(false);
+        }
     };
 
     if (itemCount === 0) return (
@@ -69,6 +136,37 @@ export const Checkout = () => {
 
                                 <div>
                                     <h2 className="text-4xl font-display italic uppercase mb-8">Dirección de <span className="text-primary">Envío</span></h2>
+
+                                    {savedAddresses.length > 0 && (
+                                        <div className="mb-10 space-y-4">
+                                            <p className="text-[10px] font-black uppercase text-gray-500 tracking-[0.2em] mb-4">Direcciones Guardadas</p>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                {savedAddresses.map((addr) => (
+                                                    <button
+                                                        key={addr.id}
+                                                        onClick={() => selectSavedAddress(addr)}
+                                                        className={`text-left p-4 rounded-2xl border transition-all ${formData.address === addr.street
+                                                                ? 'bg-primary/5 border-primary shadow-[0_0_20px_rgba(204,255,0,0.1)]'
+                                                                : 'bg-white/5 border-white/5 hover:border-white/20'
+                                                            }`}
+                                                    >
+                                                        <div className="flex items-start gap-3">
+                                                            <Clock size={14} className="text-primary mt-0.5" />
+                                                            <div>
+                                                                <p className="text-[10px] font-bold text-white uppercase italic truncate w-full">{addr.street}</p>
+                                                                <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest">{addr.city}, {addr.state}</p>
+                                                            </div>
+                                                        </div>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                            <div className="relative py-6">
+                                                <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-white/5"></div></div>
+                                                <div className="relative flex justify-center text-[9px] uppercase font-bold tracking-[0.3em]"><span className="bg-[#050505] px-4 text-gray-600 italic">O ingresa una nueva</span></div>
+                                            </div>
+                                        </div>
+                                    )}
+
                                     <div className="grid grid-cols-2 gap-4 mb-4">
                                         <input
                                             type="text"
@@ -164,10 +262,24 @@ export const Checkout = () => {
                                     <button onClick={() => setStep(1)} className="flex-1 border border-white/10 text-white py-6 rounded-2xl font-display font-bold uppercase tracking-[0.2em] italic">Atrás</button>
                                     <button
                                         onClick={handleComplete}
-                                        className="flex-[2] bg-primary text-black py-6 rounded-2xl font-display font-bold uppercase tracking-[0.2em] italic hover:shadow-[0_0_40px_rgba(204,255,0,0.3)] transition-all flex items-center justify-center gap-4"
+                                        disabled={loading}
+                                        className={`flex-[2] bg-primary text-black py-6 rounded-2xl font-display font-bold uppercase tracking-[0.2em] italic hover:shadow-[0_0_40px_rgba(204,255,0,0.3)] transition-all flex items-center justify-center gap-4 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                                     >
-                                        Pagar Ahora <CheckCircle size={20} />
+                                        {loading ? 'Procesando...' : 'Pagar Ahora'} <CheckCircle size={20} />
                                     </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {step === 3 && (
+                            <div className="text-center py-20 space-y-8 animate-in fade-in zoom-in duration-500">
+                                <div className="w-32 h-32 bg-primary/10 rounded-full flex items-center justify-center mx-auto border border-primary/20 shadow-[0_0_50px_rgba(204,255,0,0.2)]">
+                                    <CheckCircle size={60} className="text-primary" />
+                                </div>
+                                <h2 className="text-6xl font-display italic uppercase leading-tight">Arsenal <span className="text-primary">Confirmado</span></h2>
+                                <p className="text-gray-500 uppercase font-bold tracking-[0.2em] text-sm">Tu pedido ha sido procesado con éxito. <br /> Recibirás un correo con los detalles.</p>
+                                <div className="pt-10">
+                                    <Link to="/" className="text-primary font-bold border-b border-primary/50 hover:border-primary transition-all pb-1 uppercase italic tracking-widest text-xs">Volver al Inicio</Link>
                                 </div>
                             </div>
                         )}
@@ -224,7 +336,7 @@ export const Checkout = () => {
                                     <MapPin className="text-primary" size={20} />
                                     <div>
                                         <p className="text-[10px] font-black uppercase text-white tracking-widest italic leading-none mb-1">Origen Colombia 🇨🇴</p>
-                                        <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest">Despachos inmediatos desde Bogotá</p>
+                                        <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest">Despachos inmediatos desde Cali</p>
                                     </div>
                                 </div>
                             </div>

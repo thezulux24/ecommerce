@@ -44,9 +44,9 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
             return [...prev, {
                 id: product.id,
                 name: product.name,
-                price: product.price,
+                price: parseFloat(product.price),
                 quantity: quantity,
-                image: product.images?.[0]?.url || '',
+                image: product.image || product.images?.[0]?.url || '',
                 slug: product.slug || product.id
             }];
         });

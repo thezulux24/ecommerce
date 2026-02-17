@@ -29,5 +29,18 @@ export class UsersService {
         });
     }
 
+    async findAll(): Promise<User[]> {
+        return this.prisma.user.findMany({
+            orderBy: { createdAt: 'desc' },
+        });
+    }
+
+    async findAddresses(userId: string) {
+        return this.prisma.address.findMany({
+            where: { userId },
+            orderBy: { createdAt: 'desc' },
+        });
+    }
+
     // Otros métodos como update, remove, etc. se añadirán después
 }

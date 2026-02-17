@@ -13,11 +13,12 @@ import { CartModule } from './cart/cart.module';
 import { OrdersModule } from './orders/orders.module';
 import { UploadsModule } from './uploads/uploads.module';
 import { PaymentsModule } from './payments/payments.module';
+import { BundlesModule } from './bundles/bundles.module';
 
 @Module({
   imports: [
     ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'uploads'),
+      rootPath: join(process.cwd(), 'uploads'),
       serveRoot: '/uploads',
     }),
     PrismaModule,
@@ -30,6 +31,7 @@ import { PaymentsModule } from './payments/payments.module';
     OrdersModule,
     UploadsModule,
     PaymentsModule,
+    BundlesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

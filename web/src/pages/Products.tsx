@@ -3,6 +3,7 @@ import axios from 'axios';
 import { ProductCard } from '../components/ProductCard';
 import { Filter, X, ChevronRight, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useSearchParams } from 'react-router-dom';
 
 const API_BASE = 'http://localhost:3000';
 
@@ -140,13 +141,36 @@ export const Products = () => {
     const [loading, setLoading] = useState(true);
     const [showMobileFilters, setShowMobileFilters] = useState(false);
 
+    const [searchParams, setSearchParams] = useSearchParams();
     const [filters, setFilters] = useState({
-        category: '',
-        brand: '',
-        minPrice: '',
-        maxPrice: '',
-        search: ''
+        category: searchParams.get('category') || '',
+        brand: searchParams.get('brand') || '',
+        minPrice: searchParams.get('minPrice') || '',
+        maxPrice: searchParams.get('maxPrice') || '',
+        search: searchParams.get('search') || ''
     });
+
+    // Update URL when filters change
+    useEffect(() => {
+        const newParams = new URLSearchParams();
+        if (filters.category) newParams.set('category', filters.category);
+        if (filters.brand) newParams.set('brand', filters.brand);
+        if (filters.minPrice) newParams.set('minPrice', filters.minPrice);
+        if (filters.maxPrice) newParams.set('maxPrice', filters.maxPrice);
+        if (filters.search) newParams.set('search', filters.search);
+        setSearchParams(newParams, { replace: true });
+    }, [filters, setSearchParams]);
+
+    // Update filters when URL parameters change (e.g. back button or direct link)
+    useEffect(() => {
+        setFilters({
+            category: searchParams.get('category') || '',
+            brand: searchParams.get('brand') || '',
+            minPrice: searchParams.get('minPrice') || '',
+            maxPrice: searchParams.get('maxPrice') || '',
+            search: searchParams.get('search') || ''
+        });
+    }, [searchParams]);
 
     useEffect(() => {
         const fetchData = async () => {

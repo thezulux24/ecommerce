@@ -19,5 +19,6 @@ import { extname } from 'path';
     ],
     controllers: [UploadsController],
     providers: [UploadsService],
+    exports: [UploadsService],
 })
 export class UploadsModule { }

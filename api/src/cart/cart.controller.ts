@@ -31,4 +31,9 @@ export class CartController {
     clearCart(@Request() req) {
         return this.cartService.clearCart(req.user.userId);
     }
+
+    @Post('sync')
+    syncCart(@Request() req, @Body('items') items: { productId: string; quantity: number }[]) {
+        return this.cartService.syncCart(req.user.userId, items);
+    }
 }

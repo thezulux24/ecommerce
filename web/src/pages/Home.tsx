@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import {
@@ -8,11 +8,23 @@ import {
 import { ProductCard } from '../components/ProductCard';
 
 const API_BASE = 'http://localhost:3000';
-const heroImage = "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=2000&auto=format&fit=crop";
+const heroImage = "/images/background3.png";
 
 export const Home = () => {
     const [bestSellers, setBestSellers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const navigate = useNavigate();
+
+    const handleCategoryClick = (categoryName: string) => {
+        // Map common names to actual filter slugs if necessary
+        const slugMap: Record<string, string> = {
+            'Ganar masa muscular': 'proteinas',
+            'Mejorar rendimiento': 'pre-entreno',
+            'Definición Extrema': 'quemadores'
+        };
+        const slug = slugMap[categoryName] || categoryName.toLowerCase().replace(/ /g, '-');
+        navigate(`/supplements?category=${slug}`);
+    };
 
     useEffect(() => {
         const fetchBestSellers = async () => {
@@ -159,13 +171,14 @@ export const Home = () => {
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         {[
-                            { name: 'Ganar masa muscular', icon: <Activity size={40} />, desc: 'Proteínas y Aminoácidos', img: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=800' },
-                            { name: 'Mejorar rendimiento', icon: <Zap size={40} />, desc: 'Pre-entrenos y Energía', img: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=800' },
-                            { name: 'Definición Extrema', icon: <ShieldCheck size={40} />, desc: 'Quemadores y Control', img: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=800' },
+                            { name: 'Ganar masa muscular', icon: <Activity size={40} />, desc: 'Proteínas y Aminoácidos', img: '/images/proteina.png' },
+                            { name: 'Mejorar rendimiento', icon: <Zap size={40} />, desc: 'Pre-entrenos y Energía', img: '/images/pre.png' },
+                            { name: 'Definición Extrema', icon: <ShieldCheck size={40} />, desc: 'Quemadores y Control', img: '/images/definicion.png' },
                         ].map((cat, idx) => (
                             <motion.div
                                 key={idx}
                                 whileHover={{ y: -15 }}
+                                onClick={() => handleCategoryClick(cat.name)}
                                 className="group relative h-[600px] rounded-[40px] overflow-hidden border border-white/5 cursor-pointer"
                             >
                                 <img src={cat.img} className="absolute inset-0 w-full h-full object-cover grayscale brightness-50 group-hover:grayscale-0 group-hover:scale-110 group-hover:brightness-75 transition-all duration-1000 ease-out" alt={cat.name} />

@@ -1,16 +1,25 @@
 import { Controller, Get, Post, Body, Param, Patch, UseGuards, Request } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { OrderStatus } from '@prisma/client';
+import { OrderStatus, Role } from '@prisma/client';
+import { Roles } from '../auth/roles.decorator';
+import { RolesGuard } from '../auth/roles.guard';
 
 @Controller('orders')
 @UseGuards(JwtAuthGuard)
 export class OrdersController {
     constructor(private readonly ordersService: OrdersService) { }
 
+    @Get('admin/all')
+    @UseGuards(RolesGuard)
+    @Roles(Role.ADMIN)
+    adminFindAll() {
+        return this.ordersService.findAllAdmin();
+    }
+
     @Post()
-    create(@Request() req, @Body('shippingAddress') shippingAddress: string) {
-        return this.ordersService.createFromCart(req.user.userId, shippingAddress);
+    create(@Request() req, @Body('addressData') addressData: any) {
+        return this.ordersService.createFromCart(req.user.userId, addressData);
     }
 
     @Get()
@@ -24,8 +33,13 @@ export class OrdersController {
     }
 
     @Patch(':id/status')
-    // Solo admin debería poder hacer esto, pero por simplicidad ahora lo dejamos abierto a auth
-    updateStatus(@Param('id') id: string, @Body('status') status: OrderStatus) {
-        return this.ordersService.updateStatus(id, status);
+    @UseGuards(RolesGuard)
+    @Roles(Role.ADMIN)
+    updateStatus(
+        @Param('id') id: string,
+        @Body('status') status: OrderStatus,
+        @Body('trackingNumber') trackingNumber?: string
+    ) {
+        return this.ordersService.updateStatus(id, status, trackingNumber);
     }
 }

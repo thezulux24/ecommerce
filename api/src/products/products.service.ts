@@ -1,10 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma, Product } from '@prisma/client';
+import { UploadsService } from '../uploads/uploads.service';
 
 @Injectable()
 export class ProductsService {
-    constructor(private prisma: PrismaService) { }
+    constructor(
+        private prisma: PrismaService,
+        private uploadsService: UploadsService
+    ) { }
 
     async create(data: Prisma.ProductCreateInput): Promise<Product> {
         return this.prisma.product.create({ data });
@@ -64,6 +68,15 @@ export class ProductsService {
     }
 
     async remove(id: string): Promise<Product> {
+        const product = await this.prisma.product.findUnique({
+            where: { id },
+            include: { images: true }
+        });
+
+        if (product) {
+            product.images.forEach(img => this.uploadsService.deleteFile(img.url));
+        }
+
         return this.prisma.product.delete({ where: { id } });
     }
 }

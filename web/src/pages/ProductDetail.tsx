@@ -173,7 +173,7 @@ export const ProductDetail = () => {
 
                         <div className="space-y-4">
                             <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-green-500 italic">
-                                <CheckCircle size={16} /> 12 unidades disponibles en bodega Bogotá
+                                <CheckCircle size={16} /> 12 unidades disponibles en bodega Cali
                             </div>
                             <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-primary italic">
                                 <Zap size={16} fill="currentColor" /> ¡Súmale {formatCOP(150000)} más y el envío es GRATIS!

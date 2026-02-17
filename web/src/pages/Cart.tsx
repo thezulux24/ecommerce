@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { Trash2, Plus, Minus, ArrowRight, ShoppingBag, ShieldCheck, Truck } from 'lucide-react';
 import { formatCOP } from '../utils/formatters';
+import { motion } from 'framer-motion';
 
 export const Cart = () => {
     const { cart, removeFromCart, updateQuantity, total, itemCount } = useCart();
@@ -113,9 +114,12 @@ export const Cart = () => {
                                 </div>
                             </div>
 
-                            <button className="w-full bg-white text-black py-6 rounded-2xl font-display font-bold uppercase tracking-[0.2em] hover:bg-primary transition-all flex items-center justify-center gap-4 italic shadow-xl active:scale-95">
+                            <Link
+                                to="/checkout"
+                                className="w-full bg-white text-black py-6 rounded-2xl font-display font-bold uppercase tracking-[0.2em] hover:bg-primary transition-all flex items-center justify-center gap-4 italic shadow-xl active:scale-95"
+                            >
                                 Finalizar Pedido <ArrowRight size={20} />
-                            </button>
+                            </Link>
 
                             <div className="mt-12 space-y-6 pt-8 border-t border-white/5">
                                 <div className="flex items-center gap-4 opacity-40">

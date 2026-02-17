@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Plus, Edit2, Trash2, Folder, X, Zap } from 'lucide-react';
+import { Plus, Edit2, Trash2, Folder, X, Zap, Camera } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { ImageUpload } from '../components/ImageUpload';
 
 const API_BASE = 'http://localhost:3000';
 
@@ -12,9 +13,11 @@ export const AdminCategories = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const [formData, setFormData] = useState({
+        id: undefined as string | undefined,
         name: '',
         slug: '',
         description: '',
+        image: '',
     });
 
     const fetchCategories = async () => {
@@ -47,18 +50,37 @@ export const AdminCategories = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            await axios.post(`${API_BASE}/categories`, {
+            const data = {
                 ...formData,
                 slug: formData.slug || formData.name.toLowerCase().replace(/ /g, '-'),
-            }, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            };
+
+            if (formData.id) {
+                await axios.patch(`${API_BASE}/categories/${formData.id}`, data, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+            } else {
+                await axios.post(`${API_BASE}/categories`, data, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+            }
             setIsModalOpen(false);
-            setFormData({ name: '', slug: '', description: '' });
+            setFormData({ id: undefined, name: '', slug: '', description: '', image: '' });
             fetchCategories();
         } catch (err) {
-            alert('Error al crear categoría');
+            alert('Error al procesar categoría');
         }
+    };
+
+    const handleEdit = (category: any) => {
+        setFormData({
+            id: category.id,
+            name: category.name,
+            slug: category.slug,
+            description: category.description || '',
+            image: category.image || '',
+        });
+        setIsModalOpen(true);
     };
 
     return (
@@ -87,7 +109,7 @@ export const AdminCategories = () => {
                                 <Folder className="w-6 h-6 text-primary group-hover:text-accent transition-colors" />
                             </div>
                             <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <button className="p-2 text-gray-400 hover:text-primary transition-colors"><Edit2 className="w-4 h-4" /></button>
+                                <button onClick={() => handleEdit(cat)} className="p-2 text-gray-400 hover:text-primary transition-colors"><Edit2 className="w-4 h-4" /></button>
                                 <button onClick={() => handleDelete(cat.id)} className="p-2 text-gray-400 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
                             </div>
                         </div>
@@ -108,8 +130,8 @@ export const AdminCategories = () => {
                     <div className="bg-black w-full max-w-xl rounded-3xl overflow-hidden shadow-[0_0_50px_rgba(204,255,0,0.15)] relative border border-white/10 text-white">
                         <div className="p-8 flex items-center justify-between border-b border-white/5">
                             <div>
-                                <h2 className="text-3xl font-display font-bold text-primary italic uppercase tracking-tighter">Nueva Categoría</h2>
-                                <p className="text-gray-400 text-[10px] uppercase tracking-[0.2em] mt-1 font-bold">Define un nuevo objetivo de entrenamiento</p>
+                                <h2 className="text-3xl font-display font-bold text-primary italic uppercase tracking-tighter">{formData.id ? 'Editar' : 'Nueva'} Categoría</h2>
+                                <p className="text-gray-400 text-[10px] uppercase tracking-[0.2em] mt-1 font-bold">{formData.id ? 'Modifica el objetivo de entrenamiento' : 'Define un nuevo objetivo de entrenamiento'}</p>
                             </div>
                             <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-white transition-colors bg-white/5 p-2 rounded-full">
                                 <X size={20} />
@@ -138,9 +160,19 @@ export const AdminCategories = () => {
                                 ></textarea>
                             </div>
 
+                            <div>
+                                <label className="block text-[10px] uppercase font-bold text-gray-500 tracking-[0.2em] mb-4 px-1 flex items-center gap-2">
+                                    <Camera size={14} className="text-primary" /> Imagen de Categoría
+                                </label>
+                                <ImageUpload
+                                    currentImage={formData.image}
+                                    onUploadComplete={(url) => setFormData({ ...formData, image: url })}
+                                />
+                            </div>
+
                             <div className="pt-6">
                                 <button type="submit" className="w-full bg-primary text-black py-5 rounded-2xl font-display font-bold uppercase tracking-[0.2em] transition-all hover:shadow-[0_0_40px_rgba(204,255,0,0.5)] flex items-center justify-center gap-3 italic">
-                                    <Zap size={20} fill="black" /> Desplegar Categoría
+                                    <Zap size={20} fill="black" /> {formData.id ? 'Actualizar' : 'Desplegar'} Categoría
                                 </button>
                             </div>
                         </form>

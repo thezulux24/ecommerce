@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Plus, Edit2, Trash2, Search, X, Zap } from 'lucide-react';
+import { Plus, Edit2, Trash2, Search, X, Zap, Camera } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { ImageUpload } from '../components/ImageUpload';
 
 const API_BASE = 'http://localhost:3000';
 
@@ -14,6 +15,7 @@ export const AdminProducts = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const [formData, setFormData] = useState({
+        id: undefined as string | undefined,
         name: '',
         description: '',
         price: '',
@@ -73,21 +75,43 @@ export const AdminProducts = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            await axios.post(`${API_BASE}/products`, {
+            const data = {
                 ...formData,
                 price: parseFloat(formData.price),
                 stock: parseInt(formData.stock),
                 images: formData.images.filter(url => url.trim() !== ''),
                 slug: formData.name.toLowerCase().replace(/ /g, '-'),
-            }, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            };
+
+            if (formData.id) {
+                await axios.patch(`${API_BASE}/products/${formData.id}`, data, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+            } else {
+                await axios.post(`${API_BASE}/products`, data, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+            }
             setIsModalOpen(false);
-            setFormData({ name: '', description: '', price: '', stock: '', categoryId: '', brandId: '', images: [''] });
+            setFormData({ id: undefined, name: '', description: '', price: '', stock: '', categoryId: '', brandId: '', images: [''] });
             fetchProducts();
         } catch (err) {
-            alert('Error al crear producto');
+            alert('Error al procesar producto');
         }
+    };
+
+    const handleEdit = (product: any) => {
+        setFormData({
+            id: product.id,
+            name: product.name,
+            description: product.description,
+            price: product.price.toString(),
+            stock: product.stock.toString(),
+            categoryId: product.categoryId,
+            brandId: product.brandId || '',
+            images: product.images.length > 0 ? product.images.map((img: any) => img.url) : [''],
+        });
+        setIsModalOpen(true);
     };
 
     const handleImageChange = (index: number, value: string) => {
@@ -155,7 +179,7 @@ export const AdminProducts = () => {
                                     <td className="px-6 py-4 text-sm font-bold text-black">{product.stock} <span className="text-[10px] text-gray-400 uppercase">unidades</span></td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex items-center justify-end space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button className="p-2 text-gray-400 hover:text-primary hover:bg-black rounded-lg transition-colors border border-transparent hover:border-primary/20">
+                                            <button onClick={() => handleEdit(product)} className="p-2 text-gray-400 hover:text-primary hover:bg-black rounded-lg transition-colors border border-transparent hover:border-primary/20">
                                                 <Edit2 className="w-4 h-4" />
                                             </button>
                                             <button
@@ -179,8 +203,8 @@ export const AdminProducts = () => {
                     <div className="bg-black w-full max-w-2xl rounded-3xl overflow-hidden shadow-[0_0_50px_rgba(204,255,0,0.15)] relative border border-white/10 text-white">
                         <div className="bg-black p-8 flex items-center justify-between border-b border-white/5">
                             <div>
-                                <h2 className="text-3xl font-display font-bold text-primary italic uppercase tracking-tighter">Nueva Fórmula</h2>
-                                <p className="text-gray-400 text-[10px] uppercase tracking-[0.2em] mt-1 font-bold">Añade combustible al arsenal de Apex</p>
+                                <h2 className="text-3xl font-display font-bold text-primary italic uppercase tracking-tighter">{formData.id ? 'Editar' : 'Nueva'} Fórmula</h2>
+                                <p className="text-gray-400 text-[10px] uppercase tracking-[0.2em] mt-1 font-bold">{formData.id ? 'Modifica el combustible del arsenal' : 'Añade combustible al arsenal de Apex'}</p>
                             </div>
                             <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-white transition-colors bg-white/5 p-2 rounded-full">
                                 <X size={20} />
@@ -257,30 +281,32 @@ export const AdminProducts = () => {
                                     </select>
                                 </div>
                                 <div className="col-span-2">
-                                    <label className="block text-[10px] uppercase font-bold text-gray-500 tracking-[0.2em] mb-2 px-1">Visuales (URL Links)</label>
-                                    {formData.images.map((url, idx) => (
-                                        <input
-                                            key={idx}
-                                            type="url"
-                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium text-xs text-white placeholder:text-gray-700 mb-3"
-                                            placeholder="https://..."
-                                            value={url}
-                                            onChange={e => handleImageChange(idx, e.target.value)}
-                                        />
-                                    ))}
+                                    <label className="block text-[10px] uppercase font-bold text-gray-500 tracking-[0.2em] mb-4 px-1 flex items-center gap-2">
+                                        <Camera size={14} className="text-primary" /> Visuales del Producto
+                                    </label>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {formData.images.map((url, idx) => (
+                                            <ImageUpload
+                                                key={idx}
+                                                currentImage={url}
+                                                onUploadComplete={(newUrl) => handleImageChange(idx, newUrl)}
+                                                label={`Imagen ${idx + 1}`}
+                                            />
+                                        ))}
+                                    </div>
                                     <button
                                         type="button"
                                         onClick={() => setFormData({ ...formData, images: [...formData.images, ''] })}
-                                        className="text-[10px] font-bold text-primary hover:text-white transition-colors uppercase tracking-widest mt-2 flex items-center gap-2"
+                                        className="text-[10px] font-black text-primary hover:text-white transition-colors uppercase tracking-widest mt-6 flex items-center gap-2 bg-white/5 px-4 py-2 rounded-lg border border-white/5"
                                     >
-                                        + Añadir otro link de imagen
+                                        + Añadir otro espacio de imagen
                                     </button>
                                 </div>
                             </div>
 
                             <div className="pt-6">
                                 <button type="submit" className="w-full bg-primary text-black py-5 rounded-2xl font-display font-bold uppercase tracking-[0.2em] transition-all hover:shadow-[0_0_40px_rgba(204,255,0,0.5)] flex items-center justify-center gap-3 italic">
-                                    <Zap size={20} fill="black" /> Iniciar Producción
+                                    <Zap size={20} fill="black" /> {formData.id ? 'Actualizar' : 'Iniciar'} Producción
                                 </button>
                             </div>
                         </form>

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Plus, Edit2, Trash2, Tag, X, Zap } from 'lucide-react';
+import { Plus, Edit2, Trash2, Tag, X, Zap, Camera } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { ImageUpload } from '../components/ImageUpload';
 
 const API_BASE = 'http://localhost:3000';
 
@@ -12,6 +13,7 @@ export const AdminBrands = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const [formData, setFormData] = useState({
+        id: undefined as string | undefined,
         name: '',
         slug: '',
         description: '',
@@ -48,18 +50,37 @@ export const AdminBrands = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            await axios.post(`${API_BASE}/brands`, {
+            const data = {
                 ...formData,
                 slug: formData.slug || formData.name.toLowerCase().replace(/ /g, '-'),
-            }, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            };
+
+            if (formData.id) {
+                await axios.patch(`${API_BASE}/brands/${formData.id}`, data, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+            } else {
+                await axios.post(`${API_BASE}/brands`, data, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+            }
             setIsModalOpen(false);
-            setFormData({ name: '', slug: '', description: '', logo: '' });
+            setFormData({ id: undefined, name: '', slug: '', description: '', logo: '' });
             fetchBrands();
         } catch (err) {
-            alert('Error al crear marca');
+            alert('Error al procesar marca');
         }
+    };
+
+    const handleEdit = (brand: any) => {
+        setFormData({
+            id: brand.id,
+            name: brand.name,
+            slug: brand.slug,
+            description: brand.description || '',
+            logo: brand.logo || '',
+        });
+        setIsModalOpen(true);
     };
 
     return (
@@ -92,7 +113,7 @@ export const AdminBrands = () => {
                                 )}
                             </div>
                             <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <button className="p-2 text-gray-400 hover:text-primary transition-colors"><Edit2 className="w-4 h-4" /></button>
+                                <button onClick={() => handleEdit(brand)} className="p-2 text-gray-400 hover:text-primary transition-colors"><Edit2 className="w-4 h-4" /></button>
                                 <button onClick={() => handleDelete(brand.id)} className="p-2 text-gray-400 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
                             </div>
                         </div>
@@ -111,8 +132,8 @@ export const AdminBrands = () => {
                     <div className="bg-black w-full max-w-xl rounded-3xl overflow-hidden shadow-[0_0_50px_rgba(204,255,0,0.15)] relative border border-white/10 text-white">
                         <div className="p-8 flex items-center justify-between border-b border-white/5">
                             <div>
-                                <h2 className="text-3xl font-display font-bold text-primary italic uppercase tracking-tighter">Nueva Marca</h2>
-                                <p className="text-gray-400 text-[10px] uppercase tracking-[0.2em] mt-1 font-bold">Añade un nuevo sello al arsenal</p>
+                                <h2 className="text-3xl font-display font-bold text-primary italic uppercase tracking-tighter">{formData.id ? 'Editar' : 'Nueva'} Marca</h2>
+                                <p className="text-gray-400 text-[10px] uppercase tracking-[0.2em] mt-1 font-bold">{formData.id ? 'Modifica el sello de calidad' : 'Añade un nuevo sello al arsenal'}</p>
                             </div>
                             <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-white transition-colors bg-white/5 p-2 rounded-full">
                                 <X size={20} />
@@ -132,13 +153,12 @@ export const AdminBrands = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-[10px] uppercase font-bold text-gray-500 tracking-[0.2em] mb-2 px-1">Logo URL</label>
-                                <input
-                                    type="url"
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-bold text-white placeholder:text-gray-700"
-                                    placeholder="https://..."
-                                    value={formData.logo}
-                                    onChange={e => setFormData({ ...formData, logo: e.target.value })}
+                                <label className="block text-[10px] uppercase font-bold text-gray-500 tracking-[0.2em] mb-4 px-1 flex items-center gap-2">
+                                    <Camera size={14} className="text-primary" /> Logo de la Marca
+                                </label>
+                                <ImageUpload
+                                    currentImage={formData.logo}
+                                    onUploadComplete={(url) => setFormData({ ...formData, logo: url })}
                                 />
                             </div>
                             <div>
@@ -153,7 +173,7 @@ export const AdminBrands = () => {
 
                             <div className="pt-6">
                                 <button type="submit" className="w-full bg-primary text-black py-5 rounded-2xl font-display font-bold uppercase tracking-[0.2em] transition-all hover:shadow-[0_0_40px_rgba(204,255,0,0.5)] flex items-center justify-center gap-3 italic">
-                                    <Zap size={20} fill="black" /> Registrar Marca
+                                    <Zap size={20} fill="black" /> {formData.id ? 'Actualizar' : 'Registrar'} Marca
                                 </button>
                             </div>
                         </form>

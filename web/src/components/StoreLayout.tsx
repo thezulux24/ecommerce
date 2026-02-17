@@ -62,10 +62,10 @@ export const StoreLayout = ({ children }: { children: React.ReactNode }) => {
                             Apex<span className="text-white">Labs</span>
                         </Link>
                         <div className="hidden lg:flex items-center gap-8 uppercase font-display text-[11px] tracking-[0.2em] font-bold">
-                            <Link to="/products" className="hover:text-primary transition-colors italic">Suplementos</Link>
-                            <a href="#" className="hover:text-primary transition-colors italic">Objetivos</a>
-                            <a href="#" className="hover:text-primary transition-colors italic">Blog</a>
-                            <a href="#" className="hover:text-primary transition-colors italic text-primary">Packs Ahorro</a>
+                            <Link to="/supplements" className="hover:text-primary transition-colors italic">Suplementos</Link>
+                            <Link to="/categories" className="hover:text-primary transition-colors italic">Categorías</Link>
+                            <Link to="/brands" className="hover:text-primary transition-colors italic">Marcas</Link>
+                            <Link to="/save-bundles" className="hover:text-primary transition-colors italic text-primary">Packs Ahorro</Link>
                         </div>
                     </div>
 
@@ -120,7 +120,7 @@ export const StoreLayout = ({ children }: { children: React.ReactNode }) => {
                             </Link>
                             <div className="text-gray-400 max-w-md mb-12 text-lg font-medium leading-relaxed">
                                 <p className="mb-2">Distribuidor Oficial Colombia | NIT: 900.XXX.XXX-X</p>
-                                <p className="text-sm font-bold uppercase tracking-widest text-gray-600">Bogotá D.C., Colombia</p>
+                                <p className="text-sm font-bold uppercase tracking-widest text-gray-600">Cali, Colombia</p>
                             </div>
                             <div className="flex gap-8">
                                 <Instagram className="hover:text-primary cursor-pointer transition-colors text-white" />

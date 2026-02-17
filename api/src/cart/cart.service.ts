@@ -58,4 +58,30 @@ export class CartService {
         const cart = await this.getCart(userId);
         await this.prisma.cartItem.deleteMany({ where: { cartId: cart.id } });
     }
+
+    async syncCart(userId: string, items: { productId: string; quantity: number }[]): Promise<any> {
+        const cart = await this.getCart(userId);
+
+        return this.prisma.$transaction(async (tx) => {
+            // Clear existing
+            await tx.cartItem.deleteMany({ where: { cartId: cart.id } });
+
+            // Add new items
+            if (items.length > 0) {
+                await tx.cartItem.createMany({
+                    data: items.map(item => ({
+                        cartId: cart.id,
+                        productId: item.productId,
+                        quantity: item.quantity
+                    }))
+                });
+            }
+
+            // Return updated cart within the same transaction context
+            return tx.cart.findUnique({
+                where: { userId },
+                include: { items: { include: { product: { include: { images: true } } } } },
+            });
+        });
+    }
 }

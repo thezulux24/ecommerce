@@ -13,7 +13,10 @@ async function main() {
     await prisma.cartItem.deleteMany();
     await prisma.cart.deleteMany();
     await prisma.productImage.deleteMany();
+    await prisma.bundleProduct.deleteMany();
+    await prisma.bundle.deleteMany();
     await prisma.product.deleteMany();
+    await prisma.brand.deleteMany();
     await prisma.category.deleteMany();
     await prisma.address.deleteMany();
     await prisma.user.deleteMany();
@@ -57,25 +60,36 @@ async function main() {
         include: { addresses: true },
     });
 
-    // Create Categories
-    const proteina = await prisma.category.create({
-        data: { name: 'Proteína', slug: 'proteina', description: 'Proteína de suero y aislados para construcción muscular.' },
+    // Create Brands
+    const apexBrand = await prisma.brand.create({
+        data: { name: 'Apex Labs', slug: 'apex-labs', description: 'Nuestra marca insignia de alto rendimiento.' }
+    });
+    const muscleTech = await prisma.brand.create({
+        data: { name: 'MuscleTech', slug: 'muscletech', description: 'Líder mundial en nutrición deportiva.' }
+    });
+    const optimum = await prisma.brand.create({
+        data: { name: 'Optimum Nutrition', slug: 'optimum-nutrition', description: 'Calidad superior en proteínas.' }
     });
 
+    // Create Categories
+    const proteina = await prisma.category.create({
+        data: { name: 'Proteína', slug: 'proteinas', description: 'Proteína de suero y aislados para construcción muscular.' },
+    });
     const creatina = await prisma.category.create({
         data: { name: 'Creatina', slug: 'creatina', description: 'Creatina monohidratada para fuerza y potencia.' },
     });
-
     const quemadores = await prisma.category.create({
         data: { name: 'Quemadores', slug: 'quemadores', description: 'Termogénicos y lipotrópicos para pérdida de grasa.' },
     });
-
     const bcaa = await prisma.category.create({
         data: { name: 'BCAA', slug: 'bcaa', description: 'Aminoácidos de cadena ramificada para recuperación.' },
     });
+    const preEntreno = await prisma.category.create({
+        data: { name: 'Pre-entreno', slug: 'pre-entreno', description: 'Energía y enfoque extremo para tus entrenamientos.' },
+    });
 
     // Create Products
-    const products = [
+    const productsData = [
         {
             name: 'ISO Apex Whey',
             slug: 'iso-apex-whey',
@@ -83,13 +97,9 @@ async function main() {
             price: '64.99',
             stock: 100,
             categoryId: proteina.id,
+            brandId: apexBrand.id,
             images: ['https://images.unsplash.com/photo-1593095191850-2a7330053bb4?q=80&w=800'],
-            metadata: {
-                protein: '25g',
-                carbs: '0g',
-                servings: 30,
-                flavor: 'Vainilla Glacial',
-            },
+            metadata: { protein: '25g', carbs: '0g', servings: 30, flavor: 'Vainilla Glacial' },
         },
         {
             name: 'Apex Creatine Elite',
@@ -98,12 +108,9 @@ async function main() {
             price: '34.99',
             stock: 150,
             categoryId: creatina.id,
+            brandId: apexBrand.id,
             images: ['https://images.unsplash.com/photo-1579722820308-d74e5719d38e?q=80&w=800'],
-            metadata: {
-                purity: '100%',
-                servings: 60,
-                type: 'Monohydrate',
-            },
+            metadata: { purity: '100%', servings: 60, type: 'Monohydrate' },
         },
         {
             name: 'Thermal Burn X',
@@ -112,40 +119,81 @@ async function main() {
             price: '44.99',
             stock: 50,
             categoryId: quemadores.id,
+            brandId: muscleTech.id,
             images: ['https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=800'],
-            metadata: {
-                capsules: 90,
-                intensity: 'Extreme',
-                phases: 'Fast Release',
-            },
+            metadata: { capsules: 90, intensity: 'Extreme' },
         },
         {
-            name: 'Apex BCAA 2:1:1',
-            slug: 'apex-bcaa-recovery',
-            description: 'Aminoácidos esenciales para recuperación y resistencia intra-entreno.',
-            price: '29.99',
-            stock: 200,
-            categoryId: bcaa.id,
-            images: ['https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=800'],
-            metadata: {
-                ratio: '2:1:1',
-                sugar: '0g',
-                servings: 30,
-            },
-        },
+            name: 'Nitro Surge V8',
+            slug: 'nitro-surge-v8',
+            description: 'Pre-entreno explosivo con cafeína y beta-alanina.',
+            price: '39.99',
+            stock: 80,
+            categoryId: preEntreno.id,
+            brandId: apexBrand.id,
+            images: ['https://images.unsplash.com/photo-1579722820308-d74e5719d38e?q=80&w=800'],
+            metadata: { caffeine: '300mg', servings: 30, focus: 'High' },
+        }
     ];
 
-    for (const p of products) {
+    const createdProducts: any[] = [];
+    for (const p of productsData) {
         const { images, ...productData } = p;
-        await prisma.product.create({
+        const product = await prisma.product.create({
             data: {
                 ...productData,
-                images: {
-                    create: images.map(url => ({ url })),
-                },
+                images: { create: images.map(url => ({ url })) },
             },
         });
+        createdProducts.push(product);
     }
+
+    // Create Bundles
+    await prisma.bundle.create({
+        data: {
+            name: 'Pack Hipertrofia Elite',
+            slug: 'pack-hipertrofia-elite',
+            description: 'El stack definitivo para ganar masa muscular magra rápidamente.',
+            price: 89.99,
+            oldPrice: 109.99,
+            image: 'https://images.unsplash.com/photo-1593095191850-2a7330053bb4?q=80&w=800',
+            features: [
+                'Recuperación acelerada tras entrenos pesados',
+                'Síntesis proteica optimizada al 100%',
+                'Aumento visible de fuerza en 2 semanas',
+                'Incluye guía de nutrición personalizada'
+            ],
+            products: {
+                create: [
+                    { productId: createdProducts[0].id },
+                    { productId: createdProducts[1].id }
+                ]
+            }
+        }
+    });
+
+    await prisma.bundle.create({
+        data: {
+            name: 'Pack Corte Extremo',
+            slug: 'pack-corte-extremo',
+            description: 'Define tu musculatura y elimina los últimos depósitos de grasa.',
+            price: 69.99,
+            oldPrice: 79.99,
+            image: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=800',
+            features: [
+                'Efecto termogénico 24/7',
+                'Control total del apetito y ansiedad',
+                'Energía explosiva sin crashes',
+                'Preserva masa muscular en déficit'
+            ],
+            products: {
+                create: [
+                    { productId: createdProducts[2].id },
+                    { productId: createdProducts[3].id }
+                ]
+            }
+        }
+    });
 
     console.log('Seeding finished.');
 }
