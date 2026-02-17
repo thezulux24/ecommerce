@@ -44,19 +44,30 @@ export const Categories = () => {
                             >
                                 <Link
                                     to={`/supplements?category=${cat.slug}`}
-                                    className="group relative h-64 flex flex-col justify-end p-10 rounded-[40px] border border-white/5 bg-white/5 hover:bg-white/10 overflow-hidden transition-all active:scale-95"
+                                    className="group relative h-80 flex flex-col items-center justify-center p-10 rounded-[40px] border border-white/5 overflow-hidden transition-all active:scale-95 shadow-2xl"
                                 >
-                                    <div className="absolute top-10 right-10 p-4 bg-primary/10 rounded-2xl border border-primary/20 text-primary group-hover:bg-primary group-hover:text-black transition-all">
-                                        <LayoutGrid size={24} />
+                                    {/* Full Background Image */}
+                                    <div className="absolute inset-0 z-0">
+                                        <img
+                                            src={cat.image || "/images/cat-placeholder.jpg"}
+                                            alt={cat.name}
+                                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 grayscale-[0.5] group-hover:grayscale-0"
+                                        />
+                                        {/* Overlay & Blur */}
+                                        <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] transition-all duration-500 group-hover:bg-black/40 group-hover:backdrop-blur-none" />
                                     </div>
 
-                                    <h3 className="text-3xl font-display uppercase italic text-white group-hover:text-primary transition-colors">{cat.name}</h3>
-                                    <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mt-2 flex items-center gap-2">
-                                        Ver Productos <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
-                                    </p>
+                                    <div className="relative z-10 text-center">
+                                        <h3 className="text-4xl font-display uppercase italic text-white group-hover:text-primary transition-colors tracking-tighter mb-2">{cat.name}</h3>
+                                        <p className="text-primary text-[10px] font-black uppercase tracking-[0.4em] flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300">
+                                            EXPLORAR <ChevronRight size={14} />
+                                        </p>
+                                    </div>
 
-                                    {/* Decoration */}
-                                    <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/20 transition-all" />
+                                    {/* Icon Decoration */}
+                                    <div className="absolute top-8 right-8 p-3 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10 text-white z-10 group-hover:bg-primary group-hover:text-black transition-all">
+                                        <LayoutGrid size={20} />
+                                    </div>
                                 </Link>
                             </motion.div>
                         ))

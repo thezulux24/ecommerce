@@ -23,11 +23,13 @@ import { AdminOrders } from './admin/AdminOrders';
 import { AdminCustomers } from './admin/AdminCustomers';
 import { AdminBundles } from './admin/AdminBundles';
 import { StoreLayout } from './components/StoreLayout';
+import { ScrollToTop } from './components/ScrollToTop';
 
 function App() {
   return (
     <AuthProvider>
       <CartProvider>
+        <ScrollToTop />
         <Routes>
           {/* Rutas de Tienda */}
           <Route path="/" element={<StoreLayout><Home /></StoreLayout>} />

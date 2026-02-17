@@ -30,10 +30,10 @@ export const Brands = () => {
                     <p className="text-gray-500 uppercase font-black tracking-[0.5em] text-[10px] italic">Solo lo mejor para tu arsenal</p>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
                     {loading ? (
-                        Array(8).fill(0).map((_, i) => (
-                            <div key={i} className="h-48 bg-white/5 rounded-[40px] animate-pulse border border-white/5" />
+                        Array(6).fill(0).map((_, i) => (
+                            <div key={i} className="h-64 bg-white/5 rounded-[40px] animate-pulse border border-white/5" />
                         ))
                     ) : (
                         brands.map((brand, i) => (
@@ -45,16 +45,23 @@ export const Brands = () => {
                             >
                                 <Link
                                     to={`/supplements?brand=${brand.slug}`}
-                                    className="group relative aspect-square p-10 rounded-[40px] border border-white/5 bg-white/[0.02] hover:bg-white/5 transition-all flex flex-col items-center justify-center text-center overflow-hidden"
+                                    className="group relative h-64 p-10 rounded-[40px] border border-white/5 bg-white/[0.02] hover:bg-white/5 transition-all flex flex-col items-center justify-center text-center overflow-hidden shadow-xl"
                                 >
-                                    <div className="w-20 h-20 bg-black rounded-3xl border border-white/10 flex items-center justify-center mb-4 group-hover:border-primary/50 transition-colors">
+                                    {/* Brand Logo/Image Container */}
+                                    <div className="w-full h-full flex items-center justify-center mb-4 transition-transform duration-500 group-hover:scale-110">
                                         {brand.logo ? (
-                                            <img src={brand.logo} alt={brand.name} className="w-12 h-12 grayscale group-hover:grayscale-0 transition-all" />
+                                            <img src={brand.logo} alt={brand.name} className="max-w-[80%] max-h-[80%] object-contain grayscale group-hover:grayscale-0 transition-all duration-500" />
                                         ) : (
-                                            <Shield className="text-gray-700 group-hover:text-primary transition-colors" size={32} />
+                                            <Shield className="text-gray-700 group-hover:text-primary transition-colors" size={64} />
                                         )}
                                     </div>
-                                    <h3 className="text-xs font-black uppercase tracking-[0.2em] text-gray-500 group-hover:text-white transition-colors">{brand.name}</h3>
+
+                                    <div className="absolute bottom-10 left-0 right-0">
+                                        <h3 className="text-sm font-black uppercase tracking-[0.4em] text-gray-500 group-hover:text-primary transition-colors">{brand.name}</h3>
+                                    </div>
+
+                                    {/* Premium Border Effect */}
+                                    <div className="absolute inset-0 border-2 border-transparent group-hover:border-primary/20 rounded-[40px] transition-colors pointer-events-none" />
                                 </Link>
                             </motion.div>
                         ))

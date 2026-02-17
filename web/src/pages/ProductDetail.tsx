@@ -3,8 +3,9 @@ import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import {
     ShoppingBag, Star, ShieldCheck, Truck, Zap,
-    ArrowLeft, Plus, Minus, CreditCard, CheckCircle
+    ArrowLeft, Plus, Minus, CreditCard, CheckCircle, X, AlertTriangle, AlertCircle
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { formatCOP } from '../utils/formatters';
 import { useCart } from '../context/CartContext';
 
@@ -12,11 +13,12 @@ const API_BASE = 'http://localhost:3000';
 
 export const ProductDetail = () => {
     const { slug } = useParams();
-    const { addToCart } = useCart();
+    const { addToCart, total } = useCart();
     const [product, setProduct] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [quantity, setQuantity] = useState(1);
     const [selectedImage, setSelectedImage] = useState(0);
+    const [showStockModal, setShowStockModal] = useState(false);
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -46,6 +48,27 @@ export const ProductDetail = () => {
         </div>
     );
 
+    const getStockBadge = () => {
+        if (product.stock === 0) return (
+            <span className="bg-red-600 text-white text-[10px] font-black px-3 py-1.5 rounded uppercase tracking-[0.2em] italic shadow-2xl flex items-center gap-2">
+                <AlertCircle size={12} /> Stock Agotado
+            </span>
+        );
+        if (product.stock <= 10) return (
+            <span className="bg-orange-500 text-black text-[10px] font-black px-3 py-1.5 rounded uppercase tracking-[0.2em] italic shadow-2xl flex items-center gap-2">
+                <AlertTriangle size={12} /> Últimas Unidades
+            </span>
+        );
+        return (
+            <span className="bg-primary text-black text-[10px] font-black px-3 py-1.5 rounded uppercase tracking-[0.2em] italic shadow-2xl flex items-center gap-2">
+                <CheckCircle size={12} /> En Stock
+            </span>
+        );
+    };
+
+    const shippingThreshold = 150000;
+    const remainingForFreeShipping = Math.max(0, shippingThreshold - total);
+
     return (
         <div className="min-h-screen bg-background pt-10 pb-24">
             <div className="container mx-auto px-6">
@@ -63,8 +86,10 @@ export const ProductDetail = () => {
                                 alt={product.name}
                             />
                             <div className="absolute top-6 left-6 flex flex-col gap-2">
-                                <span className="bg-primary text-black text-[10px] font-black px-3 py-1.5 rounded uppercase tracking-[0.2em] italic shadow-2xl">En Stock</span>
-                                <span className="bg-black/80 backdrop-blur-md text-white text-[10px] font-bold px-3 py-1.5 rounded uppercase tracking-[0.2em] border border-white/10 italic">Apex Original</span>
+                                {getStockBadge()}
+                                <span className="bg-black/80 backdrop-blur-md text-white text-[10px] font-bold px-3 py-1.5 rounded uppercase tracking-[0.2em] border border-white/10 italic">
+                                    {product.brand?.name || 'Apex Labs Original'}
+                                </span>
                             </div>
                         </div>
 
@@ -105,13 +130,13 @@ export const ProductDetail = () => {
 
                         <div className="bg-[#111] border border-white/5 rounded-[30px] p-8 mb-12 shadow-2xl">
                             <div className="flex items-end gap-4 mb-8">
-                                <span className="text-5xl font-display text-white italic tracking-tighter">{formatCOP(product.price)}</span>
-                                <span className="text-xl text-gray-600 line-through font-bold mb-1">{formatCOP(product.price * 1.2)}</span>
+                                <span className="text-5xl font-display text-white italic tracking-tighter">{formatCOP(Number(product.price))}</span>
+                                <span className="text-xl text-gray-600 line-through font-bold mb-1">{formatCOP(Number(product.price) * 1.2)}</span>
                                 <span className="bg-red-500/10 text-red-500 text-[10px] font-black px-3 py-1.5 rounded uppercase tracking-[0.2em] mb-2 border border-red-500/20 italic shadow-lg">-20% HOY</span>
                             </div>
 
-                            <div className="flex items-center gap-6 mb-10">
-                                <div className="flex items-center bg-black border border-white/10 rounded-2xl p-2 h-16">
+                            <div className="flex flex-col sm:flex-row gap-4 mb-8">
+                                <div className="h-12 md:h-16 bg-[#181818] rounded-2xl border border-white/5 flex items-center px-2">
                                     <button
                                         onClick={() => setQuantity(Math.max(1, quantity - 1))}
                                         className="w-12 h-full flex items-center justify-center text-gray-400 hover:text-white transition-colors"
@@ -127,10 +152,17 @@ export const ProductDetail = () => {
                                     </button>
                                 </div>
                                 <button
-                                    onClick={() => addToCart(product, quantity)}
-                                    className="flex-1 bg-primary text-black h-16 rounded-2xl font-display font-bold uppercase tracking-[0.2em] hover:shadow-[0_0_40px_rgba(204,255,0,0.4)] transition-all flex items-center justify-center gap-4 italic active:scale-95"
+                                    onClick={() => {
+                                        if (product.stock === 0) {
+                                            setShowStockModal(true);
+                                        } else {
+                                            addToCart(product, quantity);
+                                        }
+                                    }}
+                                    disabled={product.stock === 0}
+                                    className={`flex-1 h-12 md:h-16 rounded-2xl font-display font-bold uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-4 italic active:scale-95 ${product.stock === 0 ? 'bg-gray-800 text-gray-500 cursor-not-allowed opacity-50' : 'bg-primary text-black hover:shadow-[0_0_40px_rgba(204,255,0,0.4)]'}`}
                                 >
-                                    <ShoppingBag size={20} /> Añadir al Arsenal
+                                    <ShoppingBag size={20} /> {product.stock === 0 ? 'Stock Agotado' : 'Añadir al Arsenal'}
                                 </button>
                             </div>
 
@@ -162,26 +194,84 @@ export const ProductDetail = () => {
                                 <CreditCard size={18} className="text-primary" />
                                 <span className="text-[10px] uppercase font-black tracking-[0.2em] italic text-white">Métodos de Pago Seguros</span>
                             </div>
-                            <div className="flex items-center gap-8 grayscale opacity-60 h-6">
-                                <img src="https://d1ih8jugeo2m5m.cloudfront.net/2023/05/pse-1-300x300.png" className="h-full object-contain" alt="PSE" />
-                                <span className="bg-white/10 h-4 w-px" />
-                                <span className="text-[12px] font-black text-white italic tracking-tighter">NEQUI</span>
-                                <span className="bg-white/10 h-4 w-px" />
-                                <span className="text-[12px] font-black text-white italic tracking-tighter">DAVIPLATA</span>
+                            <div className="grid grid-cols-2 sm:flex sm:items-center gap-8 grayscale opacity-60">
+                                <div className="flex items-center gap-2">
+                                    <img src="https://d1ih8jugeo2m5m.cloudfront.net/2023/05/pse-1-300x300.png" className="h-6 object-contain" alt="PSE" />
+                                    <span className="text-[8px] font-black text-white uppercase opacity-40">PSE</span>
+                                </div>
+                                <span className="hidden sm:block bg-white/10 h-4 w-px" />
+                                <div className="flex items-center gap-3">
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Mastercard-logo.svg/1280px-Mastercard-logo.svg.png" className="h-5 object-contain" alt="Mastercard" />
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Visa_Inc._logo.svg/2560px-Visa_Inc._logo.svg.png" className="h-3 object-contain" alt="Visa" />
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/American_Express_logo_%282018%29.svg/1200px-American_Express_logo_%282018%29.svg.png" className="h-5 object-contain" alt="Amex" />
+                                </div>
+                                <span className="hidden sm:block bg-white/10 h-4 w-px" />
+                                <div className="flex items-center gap-4">
+                                    <span className="text-[10px] font-black text-white italic tracking-tighter">NEQUI</span>
+                                    <span className="text-[10px] font-black text-white italic tracking-tighter">DAVIPLATA</span>
+                                </div>
                             </div>
                         </div>
 
                         <div className="space-y-4">
-                            <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-green-500 italic">
-                                <CheckCircle size={16} /> 12 unidades disponibles en bodega Cali
+                            <div className={`flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] italic ${product.stock === 0 ? 'text-red-500' : 'text-green-500'}`}>
+                                <CheckCircle size={16} /> {product.stock === 0 ? 'Stock agotado' : `${product.stock} unidades disponibles`}
                             </div>
-                            <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-primary italic">
-                                <Zap size={16} fill="currentColor" /> ¡Súmale {formatCOP(150000)} más y el envío es GRATIS!
-                            </div>
+                            {remainingForFreeShipping > 0 ? (
+                                <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-primary italic">
+                                    <Zap size={16} fill="currentColor" /> ¡Súmale {formatCOP(remainingForFreeShipping)} más y el envío es GRATIS!
+                                </div>
+                            ) : (
+                                <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-green-500 italic">
+                                    <Truck size={16} /> ¡Tienes ENVÍO GRATIS en este pedido!
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
             </div>
+
+            {/* Stock Exhausted Modal */}
+            <AnimatePresence>
+                {showStockModal && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center px-6">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setShowStockModal(false)}
+                            className="absolute inset-0 bg-black/90 backdrop-blur-xl"
+                        />
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                            className="relative w-full max-w-md bg-[#111] border border-white/10 rounded-[40px] p-10 text-center overflow-hidden"
+                        >
+                            <div className="absolute top-0 left-0 w-full h-1 bg-red-600" />
+                            <div className="w-20 h-20 bg-red-600/10 rounded-3xl flex items-center justify-center mx-auto mb-8 border border-red-600/20">
+                                <AlertCircle size={40} className="text-red-500" />
+                            </div>
+                            <h3 className="text-3xl font-display uppercase italic text-white mb-4 tracking-tight">Suministros Agotados</h3>
+                            <p className="text-gray-400 text-sm font-medium leading-relaxed mb-10 uppercase tracking-widest">
+                                Esta fórmula ha sido un éxito total y se encuentra agotada temporalmente. Estamos reabasteciendo nuestro arsenal para que no pierdas el ritmo.
+                            </p>
+                            <button
+                                onClick={() => setShowStockModal(false)}
+                                className="w-full bg-white text-black py-5 rounded-2xl font-display font-bold uppercase tracking-widest italic hover:bg-primary transition-colors active:scale-95"
+                            >
+                                Entendido, Guerrero
+                            </button>
+                            <button
+                                onClick={() => setShowStockModal(false)}
+                                className="absolute top-6 right-6 text-gray-500 hover:text-white transition-colors"
+                            >
+                                <X size={20} />
+                            </button>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };

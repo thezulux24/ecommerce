@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import {
     ShoppingBag, Search, User, Instagram, Twitter,
-    Facebook, LogOut
+    Facebook, LogOut, Menu, X
 } from 'lucide-react';
 import { WhatsAppButton } from './WhatsAppButton';
 
@@ -49,6 +49,14 @@ const TopBar = () => {
 export const StoreLayout = ({ children }: { children: React.ReactNode }) => {
     const { user, logout } = useAuth();
     const { itemCount } = useCart();
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+    const navLinks = [
+        { name: 'Suplementos', path: '/supplements' },
+        { name: 'Categorías', path: '/categories' },
+        { name: 'Marcas', path: '/brands' },
+        { name: 'Packs Ahorro', path: '/save-bundles', highlight: true },
+    ];
 
     return (
         <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary selection:text-black">
@@ -62,10 +70,15 @@ export const StoreLayout = ({ children }: { children: React.ReactNode }) => {
                             Apex<span className="text-white">Labs</span>
                         </Link>
                         <div className="hidden lg:flex items-center gap-8 uppercase font-display text-[11px] tracking-[0.2em] font-bold">
-                            <Link to="/supplements" className="hover:text-primary transition-colors italic">Suplementos</Link>
-                            <Link to="/categories" className="hover:text-primary transition-colors italic">Categorías</Link>
-                            <Link to="/brands" className="hover:text-primary transition-colors italic">Marcas</Link>
-                            <Link to="/save-bundles" className="hover:text-primary transition-colors italic text-primary">Packs Ahorro</Link>
+                            {navLinks.map((link) => (
+                                <Link
+                                    key={link.path}
+                                    to={link.path}
+                                    className={`hover:text-primary transition-colors italic ${link.highlight ? 'text-primary' : ''}`}
+                                >
+                                    {link.name}
+                                </Link>
+                            ))}
                         </div>
                     </div>
 
@@ -81,7 +94,7 @@ export const StoreLayout = ({ children }: { children: React.ReactNode }) => {
 
                         <div className="flex items-center gap-5 border-l border-white/10 pl-5">
                             {user ? (
-                                <div className="flex items-center gap-5">
+                                <div className="flex items-center gap-4">
                                     <div className="flex flex-col items-end hidden sm:flex">
                                         <span className="text-[10px] uppercase tracking-widest font-bold text-primary italic">Hola, {user.firstName}</span>
                                         {user.role === 'ADMIN' && (
@@ -103,9 +116,53 @@ export const StoreLayout = ({ children }: { children: React.ReactNode }) => {
                                     {itemCount}
                                 </span>
                             </Link>
+
+                            {/* Hamburger Menu Toggle */}
+                            <button
+                                className="lg:hidden text-white hover:text-primary transition-colors"
+                                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                            >
+                                {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
+                            </button>
                         </div>
                     </div>
                 </div>
+
+                {/* Mobile Menu Overlay */}
+                <AnimatePresence>
+                    {isMenuOpen && (
+                        <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="lg:hidden bg-black border-t border-white/5 overflow-hidden"
+                        >
+                            <div className="container mx-auto px-6 py-8 flex flex-col gap-6">
+                                {navLinks.map((link) => (
+                                    <Link
+                                        key={link.path}
+                                        to={link.path}
+                                        onClick={() => setIsMenuOpen(false)}
+                                        className={`text-2xl font-display uppercase tracking-widest font-bold italic ${link.highlight ? 'text-primary' : 'text-white'}`}
+                                    >
+                                        {link.name}
+                                    </Link>
+                                ))}
+                                <div className="mt-4 pt-8 border-t border-white/5 flex flex-col gap-4">
+                                    {user && user.role === 'ADMIN' && (
+                                        <Link
+                                            to="/admin"
+                                            onClick={() => setIsMenuOpen(false)}
+                                            className="text-xs uppercase tracking-widest font-bold text-primary"
+                                        >
+                                            Ir al Panel de Administración
+                                        </Link>
+                                    )}
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </nav>
 
             <main>{children}</main>
