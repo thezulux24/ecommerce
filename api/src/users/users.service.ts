@@ -42,5 +42,14 @@ export class UsersService {
         });
     }
 
-    // Otros métodos como update, remove, etc. se añadirán después
+    async update(id: string, data: { firstName?: string, lastName?: string, password?: string }): Promise<User> {
+        const updateData: any = { ...data };
+        if (data.password) {
+            updateData.password = await bcrypt.hash(data.password, 10);
+        }
+        return this.prisma.user.update({
+            where: { id },
+            data: updateData,
+        });
+    }
 }

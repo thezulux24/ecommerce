@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Patch, Body, UseGuards, Request } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
@@ -20,5 +20,10 @@ export class UsersController {
     @Get('me/addresses')
     findMyAddresses(@Request() req) {
         return this.usersService.findAddresses(req.user.userId);
+    }
+
+    @Patch('me')
+    updateMe(@Request() req, @Body() body: { firstName?: string, lastName?: string, password?: string }) {
+        return this.usersService.update(req.user.userId, body);
     }
 }
