@@ -4,6 +4,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { Role } from '@prisma/client';
+import { UpdateProfileDto } from './dto/user.dto';
 
 @Controller('users')
 @UseGuards(JwtAuthGuard)
@@ -23,7 +24,10 @@ export class UsersController {
     }
 
     @Patch('me')
-    updateMe(@Request() req, @Body() body: { firstName?: string, lastName?: string, password?: string }) {
-        return this.usersService.update(req.user.userId, body);
+    async updateMe(@Request() req, @Body() body: UpdateProfileDto) {
+        const user = await this.usersService.update(req.user.userId, body);
+        // Excluir el password hash de la respuesta
+        const { password, ...safeUser } = user;
+        return safeUser;
     }
 }

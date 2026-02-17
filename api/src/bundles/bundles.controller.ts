@@ -4,6 +4,7 @@ import { Role } from '@prisma/client';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
+import { CreateBundleDto, UpdateBundleDto } from './dto/bundle.dto';
 
 @Controller('bundles')
 export class BundlesController {
@@ -12,7 +13,7 @@ export class BundlesController {
     @Post()
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(Role.ADMIN)
-    create(@Body() createBundleDto: any) {
+    create(@Body() createBundleDto: CreateBundleDto) {
         const slug = createBundleDto.slug || createBundleDto.name
             .toLowerCase()
             .trim()
@@ -39,7 +40,7 @@ export class BundlesController {
     @Patch(':id')
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(Role.ADMIN)
-    update(@Param('id') id: string, @Body() updateBundleDto: any) {
+    update(@Param('id') id: string, @Body() updateBundleDto: UpdateBundleDto) {
         return this.bundlesService.update(id, updateBundleDto);
     }
 

@@ -40,7 +40,7 @@ export class CartService {
         return cart;
     }
 
-    async addItem(userId: string, productId: string | null, quantity: number, bundleId?: string): Promise<CartItem> {
+    async addItem(userId: string, productId: string | undefined, quantity: number, bundleId?: string): Promise<CartItem> {
         const cart = await this.getCart(userId);
         const existingItem = cart.items.find((item) =>
             (productId && item.productId === productId) || (bundleId && item.bundleId === bundleId)
@@ -56,8 +56,8 @@ export class CartService {
         return this.prisma.cartItem.create({
             data: {
                 cartId: cart.id,
-                productId,
-                bundleId,
+                productId: productId ?? null,
+                bundleId: bundleId ?? null,
                 quantity,
             },
         });
@@ -92,8 +92,8 @@ export class CartService {
                 await tx.cartItem.createMany({
                     data: items.map(item => ({
                         cartId: cart.id,
-                        productId: item.productId || null,
-                        bundleId: item.bundleId || null,
+                        productId: item.productId ?? null,
+                        bundleId: item.bundleId ?? null,
                         quantity: item.quantity
                     }))
                 });

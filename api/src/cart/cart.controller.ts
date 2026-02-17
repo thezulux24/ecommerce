@@ -1,6 +1,7 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request } from '@nestjs/common';
 import { CartService } from './cart.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { AddCartItemDto, UpdateCartItemDto, SyncCartDto } from './dto/cart.dto';
 
 @Controller('cart')
 @UseGuards(JwtAuthGuard)
@@ -13,12 +14,12 @@ export class CartController {
     }
 
     @Post('items')
-    addItem(@Request() req, @Body() body: { productId: string; quantity: number }) {
-        return this.cartService.addItem(req.user.userId, body.productId, body.quantity);
+    addItem(@Request() req, @Body() body: AddCartItemDto) {
+        return this.cartService.addItem(req.user.userId, body.productId, body.quantity, body.bundleId);
     }
 
     @Patch('items/:id')
-    updateQuantity(@Param('id') id: string, @Body() body: { quantity: number }) {
+    updateQuantity(@Param('id') id: string, @Body() body: UpdateCartItemDto) {
         return this.cartService.updateItemQuantity(id, body.quantity);
     }
 
@@ -33,7 +34,7 @@ export class CartController {
     }
 
     @Post('sync')
-    syncCart(@Request() req, @Body('items') items: { productId: string; quantity: number }[]) {
-        return this.cartService.syncCart(req.user.userId, items);
+    syncCart(@Request() req, @Body() body: SyncCartDto) {
+        return this.cartService.syncCart(req.user.userId, body.items);
     }
 }

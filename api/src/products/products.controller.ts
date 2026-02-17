@@ -1,9 +1,10 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
 import { ProductsService } from './products.service';
-import { Prisma, Role } from '@prisma/client';
+import { Role } from '@prisma/client';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
+import { CreateProductDto, UpdateProductDto } from './dto/product.dto';
 
 @Controller('products')
 export class ProductsController {
@@ -12,11 +13,9 @@ export class ProductsController {
     @Post()
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(Role.ADMIN)
-    create(@Body() createProductDto: any) {
-        // Handle image links and automatic slug generation
-        const { images, ...data } = createProductDto;
+    create(@Body() createProductDto: CreateProductDto) {
+        const { images, categoryId, brandId, ...data } = createProductDto;
 
-        // Generate slug from name if not provided
         const slug = data.slug || data.name
             .toLowerCase()
             .trim()
@@ -27,6 +26,8 @@ export class ProductsController {
         return this.productsService.create({
             ...data,
             slug,
+            category: { connect: { id: categoryId } },
+            ...(brandId && { brand: { connect: { id: brandId } } }),
             images: images ? {
                 create: images.map((url: string) => ({ url }))
             } : undefined
@@ -46,8 +47,27 @@ export class ProductsController {
     @Patch(':id')
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(Role.ADMIN)
-    update(@Param('id') id: string, @Body() updateProductDto: Prisma.ProductUpdateInput) {
-        return this.productsService.update(id, updateProductDto);
+    async update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
+        const { images, categoryId, brandId, ...data } = updateProductDto;
+
+        const updateData: any = { ...data };
+
+        if (categoryId) {
+            updateData.category = { connect: { id: categoryId } };
+        }
+
+        if (brandId) {
+            updateData.brand = { connect: { id: brandId } };
+        }
+
+        if (images) {
+            updateData.images = {
+                deleteMany: {},
+                create: images.map(url => ({ url }))
+            };
+        }
+
+        return this.productsService.update(id, updateData);
     }
 
     @Delete(':id')

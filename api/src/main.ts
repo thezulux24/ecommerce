@@ -1,8 +1,19 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // Validación global con DTOs
+  app.useGlobalPipes(new ValidationPipe({
+    whitelist: true,       // Elimina campos no definidos en el DTO
+    forbidNonWhitelisted: false, // Permitir campos extra (se ignorarán)
+    transform: true,       // Transforma tipos automáticamente
+    transformOptions: {
+      enableImplicitConversion: true,
+    },
+  }));
 
   // CORS restringido: solo orígenes permitidos
   const allowedOrigins = [

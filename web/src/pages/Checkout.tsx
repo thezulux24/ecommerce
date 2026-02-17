@@ -79,7 +79,14 @@ export const Checkout = () => {
             });
 
             await axios.post('http://localhost:3000/orders', {
-                addressData: formData
+                addressData: {
+                    firstName: formData.firstName,
+                    lastName: formData.lastName,
+                    address: formData.address,
+                    city: formData.city,
+                    department: formData.department,
+                    phone: formData.phone,
+                }
             }, {
                 headers: {
                     Authorization: `Bearer ${token}`

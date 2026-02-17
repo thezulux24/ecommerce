@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Body, Param, Patch, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Patch, UseGuards, Request, ForbiddenException } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { OrderStatus, Role } from '@prisma/client';
+import { Role } from '@prisma/client';
 import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
+import { CreateOrderDto, UpdateOrderStatusDto } from './dto/order.dto';
 
 @Controller('orders')
 @UseGuards(JwtAuthGuard)
@@ -18,8 +19,8 @@ export class OrdersController {
     }
 
     @Post()
-    create(@Request() req, @Body('addressData') addressData: any) {
-        return this.ordersService.createFromCart(req.user.userId, addressData);
+    create(@Request() req, @Body() createOrderDto: CreateOrderDto) {
+        return this.ordersService.createFromCart(req.user.userId, createOrderDto.addressData);
     }
 
     @Get()
@@ -28,8 +29,13 @@ export class OrdersController {
     }
 
     @Get(':id')
-    findOne(@Param('id') id: string) {
-        return this.ordersService.findOne(id);
+    async findOne(@Param('id') id: string, @Request() req) {
+        const order = await this.ordersService.findOne(id);
+        // IDOR fix: verificar que el pedido pertenece al usuario o es admin
+        if (order.userId !== req.user.userId && req.user.role !== Role.ADMIN) {
+            throw new ForbiddenException('No tienes acceso a este pedido');
+        }
+        return order;
     }
 
     @Patch(':id/status')
@@ -37,9 +43,8 @@ export class OrdersController {
     @Roles(Role.ADMIN)
     updateStatus(
         @Param('id') id: string,
-        @Body('status') status: OrderStatus,
-        @Body('trackingNumber') trackingNumber?: string
+        @Body() updateStatusDto: UpdateOrderStatusDto,
     ) {
-        return this.ordersService.updateStatus(id, status, trackingNumber);
+        return this.ordersService.updateStatus(id, updateStatusDto.status, updateStatusDto.trackingNumber);
     }
 }
