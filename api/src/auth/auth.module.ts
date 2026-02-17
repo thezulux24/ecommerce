@@ -11,7 +11,13 @@ import { JwtStrategy } from './jwt.strategy';
         UsersModule,
         PassportModule,
         JwtModule.register({
-            secret: process.env.JWT_SECRET || 'secretKey',
+            secret: (() => {
+                const secret = process.env.JWT_SECRET;
+                if (!secret) {
+                    throw new Error('⚠️  JWT_SECRET no está definido en las variables de entorno. Configúralo en .env antes de iniciar.');
+                }
+                return secret;
+            })(),
             signOptions: { expiresIn: '15m' },
         }),
     ],
