@@ -12,6 +12,7 @@ import { Categories } from './pages/Categories';
 import { Brands } from './pages/Brands';
 import { MyOrders } from './pages/MyOrders';
 import { SaveBundles } from './pages/SaveBundles';
+import { Profile } from './pages/Profile';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
@@ -46,6 +47,11 @@ function App() {
           <Route path="/my-orders" element={
             <ProtectedRoute>
               <StoreLayout><MyOrders /></StoreLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/profile" element={
+            <ProtectedRoute>
+              <StoreLayout><Profile /></StoreLayout>
             </ProtectedRoute>
           } />
 

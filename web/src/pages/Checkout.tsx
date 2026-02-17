@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
-import { ShieldCheck, MapPin, CreditCard, Lock, ArrowLeft, CheckCircle, Clock } from 'lucide-react';
+import { ShieldCheck, MapPin, Lock, ArrowLeft, CheckCircle, Clock } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { formatCOP } from '../utils/formatters';
 
@@ -243,8 +243,10 @@ export const Checkout = () => {
                                             <input type="radio" name="pay" checked={formData.paymentMethod === 'card'} onChange={() => setFormData({ ...formData, paymentMethod: 'card' })} className="accent-primary" />
                                             <span className="font-bold text-sm uppercase tracking-widest italic leading-none">Tarjeta de Crédito</span>
                                         </div>
-                                        <div className="flex gap-2">
-                                            <CreditCard size={20} className="text-gray-500" />
+                                        <div className="flex gap-4 items-center">
+                                            <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" className="h-2 opacity-50" alt="Visa" />
+                                            <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" className="h-4 opacity-50" alt="Mastercard" />
+                                            <img src="https://upload.wikimedia.org/wikipedia/commons/3/30/American_Express_logo.svg" className="h-4 opacity-50" alt="Amex" />
                                         </div>
                                     </label>
                                 </div>

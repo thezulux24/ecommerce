@@ -110,6 +110,8 @@ export const StoreLayout = ({ children }: { children: React.ReactNode }) => {
                                     <div className="flex flex-col items-end hidden sm:flex">
                                         <span className="text-[10px] uppercase tracking-widest font-bold text-primary italic">Hola, {user.firstName}</span>
                                         <div className="flex gap-2">
+                                            <Link to="/profile" className="text-[8px] uppercase font-bold text-gray-400 hover:text-white transition-colors">Perfil</Link>
+                                            <span className="text-[8px] text-gray-600">|</span>
                                             <Link to="/my-orders" className="text-[8px] uppercase font-bold text-gray-400 hover:text-white transition-colors">Mis Pedidos</Link>
                                             {user.role === 'ADMIN' && (
                                                 <>
@@ -167,20 +169,46 @@ export const StoreLayout = ({ children }: { children: React.ReactNode }) => {
                                     </Link>
                                 ))}
                                 <div className="mt-4 pt-8 border-t border-white/5 flex flex-col gap-6">
-                                    {user && (
+                                    {user ? (
+                                        <>
+                                            <Link
+                                                to="/profile"
+                                                onClick={() => setIsMenuOpen(false)}
+                                                className="text-2xl font-display uppercase tracking-widest font-bold italic text-white/60 hover:text-white"
+                                            >
+                                                Perfil
+                                            </Link>
+                                            <Link
+                                                to="/my-orders"
+                                                onClick={() => setIsMenuOpen(false)}
+                                                className="text-2xl font-display uppercase tracking-widest font-bold italic text-white/60 hover:text-white"
+                                            >
+                                                Mis Pedidos
+                                            </Link>
+                                            <button
+                                                onClick={() => {
+                                                    logout();
+                                                    setIsMenuOpen(false);
+                                                }}
+                                                className="text-2xl font-display uppercase tracking-widest font-bold italic text-red-500/70 hover:text-red-500 text-left"
+                                            >
+                                                Cerrar Sesión
+                                            </button>
+                                        </>
+                                    ) : (
                                         <Link
-                                            to="/my-orders"
+                                            to="/login"
                                             onClick={() => setIsMenuOpen(false)}
-                                            className="text-2xl font-display uppercase tracking-widest font-bold italic text-white/60 hover:text-white"
+                                            className="text-2xl font-display uppercase tracking-widest font-bold italic text-primary"
                                         >
-                                            Mis Pedidos
+                                            Ingresar
                                         </Link>
                                     )}
                                     {user && user.role === 'ADMIN' && (
                                         <Link
                                             to="/admin"
                                             onClick={() => setIsMenuOpen(false)}
-                                            className="text-xs uppercase tracking-widest font-bold text-primary"
+                                            className="text-xs uppercase tracking-widest font-bold text-primary mt-4"
                                         >
                                             Ir al Panel de Administración
                                         </Link>
@@ -236,10 +264,13 @@ export const StoreLayout = ({ children }: { children: React.ReactNode }) => {
                             © {new Date().getFullYear()} Apex Labs Colombia.
                         </p>
                         <div className="flex items-center gap-6 grayscale opacity-30 hover:grayscale-0 hover:opacity-100 transition-all h-5">
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/4/42/Pse_logo.png" className="h-full object-contain" alt="PSE" />
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" className="h-3 object-contain" alt="Visa" />
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" className="h-5 object-contain" alt="Mastercard" />
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/3/30/American_Express_logo.svg" className="h-5 object-contain" alt="Amex" />
+                            <div className="flex items-center gap-1.5 border-r border-white/10 pr-6 mr-1">
+                                <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest leading-none">Paga Seguro</span>
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/4/42/Pse_logo.png" className="h-4 object-contain" alt="PSE" />
+                            </div>
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" className="h-2.5 object-contain" alt="Visa" />
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" className="h-4 object-contain" alt="Mastercard" />
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/3/30/American_Express_logo.svg" className="h-4 object-contain" alt="Amex" />
                         </div>
                     </div>
                 </div>

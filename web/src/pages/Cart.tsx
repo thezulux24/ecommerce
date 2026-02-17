@@ -128,8 +128,9 @@ export const Cart = () => {
                                 </div>
                                 <div className="flex items-center gap-6 grayscale opacity-30 h-4">
                                     <img src="https://upload.wikimedia.org/wikipedia/commons/4/42/Pse_logo.png" className="h-full object-contain" alt="PSE" />
-                                    <span className="text-[9px] font-black text-white italic">NEQUI</span>
-                                    <span className="text-[9px] font-black text-white italic">DAVIPLATA</span>
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" className="h-[10px] object-contain" alt="Visa" />
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" className="h-full object-contain" alt="Mastercard" />
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/3/30/American_Express_logo.svg" className="h-full object-contain" alt="Amex" />
                                 </div>
                             </div>
                         </div>

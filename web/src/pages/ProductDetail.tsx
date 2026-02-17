@@ -196,14 +196,14 @@ export const ProductDetail = () => {
                             </div>
                             <div className="grid grid-cols-2 sm:flex sm:items-center gap-8 grayscale opacity-60">
                                 <div className="flex items-center gap-2">
-                                    <img src="https://d1ih8jugeo2m5m.cloudfront.net/2023/05/pse-1-300x300.png" className="h-6 object-contain" alt="PSE" />
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/4/42/Pse_logo.png" className="h-6 object-contain" alt="PSE" />
                                     <span className="text-[8px] font-black text-white uppercase opacity-40">PSE</span>
                                 </div>
                                 <span className="hidden sm:block bg-white/10 h-4 w-px" />
                                 <div className="flex items-center gap-3">
-                                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Mastercard-logo.svg/1280px-Mastercard-logo.svg.png" className="h-5 object-contain" alt="Mastercard" />
-                                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Visa_Inc._logo.svg/2560px-Visa_Inc._logo.svg.png" className="h-3 object-contain" alt="Visa" />
-                                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/American_Express_logo_%282018%29.svg/1200px-American_Express_logo_%282018%29.svg.png" className="h-5 object-contain" alt="Amex" />
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" className="h-2.5 object-contain" alt="Visa" />
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" className="h-4 object-contain" alt="Mastercard" />
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/3/30/American_Express_logo.svg" className="h-4 object-contain" alt="Amex" />
                                 </div>
                                 <span className="hidden sm:block bg-white/10 h-4 w-px" />
                                 <div className="flex items-center gap-4">

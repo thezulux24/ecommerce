@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Zap, Crown, Flame, ChevronRight, Package, Loader2 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Zap, Crown, Flame, ChevronRight, Package, Loader2, X, Info } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 
 const API_BASE = 'http://localhost:3000';
@@ -9,6 +9,7 @@ const API_BASE = 'http://localhost:3000';
 export const SaveBundles = () => {
     const [bundles, setBundles] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [selectedBundle, setSelectedBundle] = useState<any>(null);
     const { addToCart } = useCart();
 
     const handleAddToCart = (bundle: any) => {
@@ -84,9 +85,13 @@ export const SaveBundles = () => {
                                         <p className="text-3xl font-display font-black text-white italic tracking-tighter leading-none">${bundle.price}</p>
                                     </div>
                                     <div className="flex gap-2">
-                                        <Link to="/products" className="bg-white/5 text-white p-3 rounded-2xl hover:bg-white/10 transition-all active:scale-95 group/btn">
-                                            <Package size={18} className="group-hover/btn:scale-110 transition-transform" />
-                                        </Link>
+                                        <button
+                                            onClick={() => setSelectedBundle(bundle)}
+                                            className="bg-white/5 text-white p-3 rounded-2xl hover:bg-white/10 transition-all active:scale-95 group/btn"
+                                            title="Ver productos incluidos"
+                                        >
+                                            <Info size={18} className="group-hover/btn:scale-110 transition-transform" />
+                                        </button>
                                         <button
                                             onClick={() => handleAddToCart(bundle)}
                                             className="bg-primary text-black px-6 py-3 rounded-2xl font-display font-bold uppercase tracking-widest text-[10px] italic hover:scale-105 active:scale-95 transition-all shadow-[0_0_20px_rgba(204,255,0,0.2)]"
@@ -118,6 +123,76 @@ export const SaveBundles = () => {
                     </a>
                 </div>
             </div>
+
+            {/* Bundle Detail Modal */}
+            <AnimatePresence>
+                {selectedBundle && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/90 backdrop-blur-sm"
+                        onClick={() => setSelectedBundle(null)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                            className="bg-[#0a0a0a] border border-white/10 w-full max-w-2xl rounded-[40px] overflow-hidden relative shadow-2xl"
+                            onClick={e => e.stopPropagation()}
+                        >
+                            <button
+                                onClick={() => setSelectedBundle(null)}
+                                className="absolute top-8 right-8 text-gray-500 hover:text-white transition-colors"
+                            >
+                                <X size={24} />
+                            </button>
+
+                            <div className="p-10">
+                                <div className="flex items-center gap-3 text-primary mb-4 font-bold tracking-[0.3em] uppercase text-[10px]">
+                                    <Package size={14} /> Contenido del Arsenal
+                                </div>
+                                <h3 className="text-4xl font-display uppercase italic text-white mb-2 leading-none">{selectedBundle.name}</h3>
+                                <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mb-10">{selectedBundle.products?.length} Productos Elite Seleccionados</p>
+
+                                <div className="space-y-4 max-h-[40vh] overflow-y-auto pr-4 custom-scrollbar mb-10">
+                                    {selectedBundle.products?.map((item: any) => (
+                                        <div key={item.id} className="flex gap-6 items-center p-4 rounded-3xl bg-white/[0.02] border border-white/5 hover:border-primary/20 transition-all group/item">
+                                            <div className="w-16 h-16 rounded-2xl overflow-hidden bg-black border border-white/10">
+                                                <img
+                                                    src={item.product?.images?.[0]?.url || 'https://via.placeholder.com/150'}
+                                                    className="w-full h-full object-cover grayscale group-hover/item:grayscale-0 transition-all"
+                                                    alt={item.product?.name}
+                                                />
+                                            </div>
+                                            <div className="flex-1">
+                                                <h4 className="text-sm font-bold uppercase tracking-widest text-white mb-1">{item.product?.name}</h4>
+                                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest leading-none line-clamp-1">{item.product?.description?.substring(0, 60)}...</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <div className="flex items-center justify-between pt-10 border-t border-white/5">
+                                    <div>
+                                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Precio Total Pack</p>
+                                        <p className="text-3xl font-display font-black text-primary italic tracking-tighter">${selectedBundle.price}</p>
+                                    </div>
+                                    <button
+                                        onClick={() => {
+                                            handleAddToCart(selectedBundle);
+                                            setSelectedBundle(null);
+                                        }}
+                                        className="bg-primary text-black px-10 py-5 rounded-2xl font-display font-bold uppercase tracking-widest text-xs italic hover:scale-105 active:scale-95 transition-all shadow-lg"
+                                    >
+                                        Añadir al Carrito
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };
