@@ -4,9 +4,52 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { ShieldCheck, MapPin, Lock, ArrowLeft, CheckCircle, Clock } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
 import { formatCOP } from '../utils/formatters';
 
 const API_BASE = 'http://localhost:3000';
+
+type PaymentMethod = 'pse' | 'card';
+
+interface CheckoutFormData {
+    email: string;
+    firstName: string;
+    lastName: string;
+    address: string;
+    apartment: string;
+    city: string;
+    department: string;
+    phone: string;
+    paymentMethod: PaymentMethod;
+}
+
+interface SavedAddress {
+    id: string;
+    street: string;
+    city: string;
+    state: string;
+    phone?: string | null;
+    fullName?: string | null;
+}
+
+interface OrderCreateResponse {
+    id: string;
+    totalAmount: number | string;
+    createdAt?: string;
+}
+
+interface SaleModalData {
+    orderId: string;
+    saleCode: string;
+    totalAmount: number;
+    paymentMethodLabel: string;
+    createdAt: string;
+}
+
+interface SaleModalState {
+    open: boolean;
+    data: SaleModalData | null;
+}
 
 export const Checkout = () => {
     const { cart, total, itemCount, clearCart } = useCart();
@@ -14,8 +57,9 @@ export const Checkout = () => {
     const navigate = useNavigate();
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
-    const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
-    const [formData, setFormData] = useState({
+    const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
+    const [saleModal, setSaleModal] = useState<SaleModalState>({ open: false, data: null });
+    const [formData, setFormData] = useState<CheckoutFormData>({
         email: user?.email || '',
         firstName: user?.firstName || '',
         lastName: user?.lastName || '',
@@ -29,44 +73,63 @@ export const Checkout = () => {
 
     useEffect(() => {
         if (token) {
-            axios.get(`${API_BASE}/users/me/addresses`, {
+            axios.get<SavedAddress[]>(`${API_BASE}/users/me/addresses`, {
                 headers: { Authorization: `Bearer ${token}` }
             }).then(res => setSavedAddresses(res.data))
                 .catch(err => console.error('Error fetching addresses:', err));
         }
     }, [token]);
 
-    const selectSavedAddress = (addr: any) => {
-        setFormData({
-            ...formData,
+    const selectSavedAddress = (addr: SavedAddress) => {
+        setFormData(prev => ({
+            ...prev,
             address: addr.street,
             city: addr.city,
             department: addr.state,
-            phone: addr.phone || formData.phone,
-            firstName: addr.fullName?.split(' ')[0] || formData.firstName,
-            lastName: addr.fullName?.split(' ').slice(1).join(' ') || formData.lastName,
-        });
+            phone: addr.phone || prev.phone,
+            firstName: addr.fullName?.split(' ')[0] || prev.firstName,
+            lastName: addr.fullName?.split(' ').slice(1).join(' ') || prev.lastName,
+        }));
     };
 
     const shippingCost = total >= 250000 ? 0 : 12000;
     const finalTotal = total + shippingCost;
 
+    const getPaymentMethodLabel = (method: PaymentMethod): string => {
+        return method === 'card' ? 'Tarjeta de Credito' : 'PSE / Debito Bancario';
+    };
+
+    const formatSaleDate = (isoDate: string): string => {
+        const date = new Date(isoDate);
+        if (Number.isNaN(date.getTime())) {
+            return new Date().toLocaleString('es-CO');
+        }
+
+        return date.toLocaleString('es-CO', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
+
     const handleComplete = async () => {
         if (!token) {
-            alert('Por favor inicia sesión para completar tu pedido.');
+            alert('Por favor inicia sesion para completar tu pedido.');
             navigate('/login', { state: { from: '/checkout' } });
             return;
         }
 
         if (!formData.address || !formData.city || !formData.phone) {
-            alert('Por favor completa todos los campos de envío.');
+            alert('Por favor completa todos los campos de envio.');
             return;
         }
 
         setLoading(true);
         try {
             // Sincronizar el carrito de localStorage con el backend primero
-            await axios.post('http://localhost:3000/cart/sync', {
+            await axios.post(`${API_BASE}/cart/sync`, {
                 items: cart.map(item => ({
                     productId: item.isBundle ? null : item.id,
                     bundleId: item.isBundle ? item.id : null,
@@ -78,7 +141,7 @@ export const Checkout = () => {
                 }
             });
 
-            await axios.post('http://localhost:3000/orders', {
+            const orderResponse = await axios.post<OrderCreateResponse>(`${API_BASE}/orders`, {
                 addressData: {
                     firstName: formData.firstName,
                     lastName: formData.lastName,
@@ -93,20 +156,35 @@ export const Checkout = () => {
                 }
             });
 
-            // Simulamos éxito inmediato como pidió el usuario
-            alert('¡ORDEN RECIBIDA! Tu pago ha sido procesado (Simulación). El Arsenal está en camino.');
+            const createdOrder = orderResponse.data;
+            const orderId = createdOrder.id;
+            const createdAt = createdOrder.createdAt || new Date().toISOString();
+
             clearCart();
-            setStep(3); // Podríamos ir a un paso de "Gracias"
-            setTimeout(() => navigate('/'), 3000);
-        } catch (error: any) {
+            setSaleModal({
+                open: true,
+                data: {
+                    orderId,
+                    saleCode: `#${orderId.split('-')[0].toUpperCase()}`,
+                    totalAmount: Number(createdOrder.totalAmount),
+                    paymentMethodLabel: getPaymentMethodLabel(formData.paymentMethod),
+                    createdAt
+                }
+            });
+        } catch (error: unknown) {
             console.error('Checkout error:', error);
-            alert(error.response?.data?.message || 'Error al procesar el pedido');
+            const errorMessage =
+                axios.isAxiosError(error) && typeof error.response?.data?.message === 'string'
+                    ? error.response.data.message
+                    : 'Error al procesar el pedido';
+
+            alert(errorMessage);
         } finally {
             setLoading(false);
         }
     };
 
-    if (itemCount === 0) return (
+    if (itemCount === 0 && !saleModal.open) return (
         <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-background">
             <h2 className="text-4xl font-display uppercase italic mb-8">No hay nada para procesar</h2>
             <Link to="/products" className="text-primary font-bold border-b border-primary italic">Volver al Arsenal</Link>
@@ -124,7 +202,7 @@ export const Checkout = () => {
                         </Link>
 
                         <div className="flex gap-4 mb-12">
-                            {[1, 2, 3].map(i => (
+                            {[1, 2].map(i => (
                                 <div key={i} className={`h-1.5 flex-1 rounded-full ${step >= i ? 'bg-primary' : 'bg-white/5'}`} />
                             ))}
                         </div>
@@ -132,10 +210,10 @@ export const Checkout = () => {
                         {step === 1 && (
                             <div className="space-y-10">
                                 <div>
-                                    <h2 className="text-4xl font-display italic uppercase mb-8">Información de <span className="text-primary">Contacto</span></h2>
+                                    <h2 className="text-4xl font-display italic uppercase mb-8">Informacion de <span className="text-primary">Contacto</span></h2>
                                     <input
                                         type="email"
-                                        placeholder="CORREO ELECTRÓNICO"
+                                        placeholder="CORREO ELECTRONICO"
                                         className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-5 focus:border-primary focus:outline-none font-bold placeholder:text-gray-700 text-sm"
                                         value={formData.email}
                                         onChange={e => setFormData({ ...formData, email: e.target.value })}
@@ -143,7 +221,7 @@ export const Checkout = () => {
                                 </div>
 
                                 <div>
-                                    <h2 className="text-4xl font-display italic uppercase mb-8">Dirección de <span className="text-primary">Envío</span></h2>
+                                    <h2 className="text-4xl font-display italic uppercase mb-8">Direccion de <span className="text-primary">Envio</span></h2>
 
                                     {savedAddresses.length > 0 && (
                                         <div className="mb-10 space-y-4">
@@ -193,7 +271,7 @@ export const Checkout = () => {
                                     </div>
                                     <input
                                         type="text"
-                                        placeholder="DIRECCIÓN (EJ: CALLE 100 # 15-20)"
+                                        placeholder="DIRECCION (EJ: CALLE 100 # 15-20)"
                                         className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-5 focus:border-primary focus:outline-none font-bold placeholder:text-gray-700 text-sm mb-4"
                                         value={formData.address}
                                         onChange={e => setFormData({ ...formData, address: e.target.value })}
@@ -216,7 +294,7 @@ export const Checkout = () => {
                                     </div>
                                     <input
                                         type="tel"
-                                        placeholder="TELÉFONO / CELULAR"
+                                        placeholder="TELEFONO / CELULAR"
                                         className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-5 focus:border-primary focus:outline-none font-bold placeholder:text-gray-700 text-sm"
                                         value={formData.phone}
                                         onChange={e => setFormData({ ...formData, phone: e.target.value })}
@@ -234,13 +312,13 @@ export const Checkout = () => {
 
                         {step === 2 && (
                             <div className="space-y-10">
-                                <h2 className="text-4xl font-display italic uppercase">Finalizar <span className="text-primary">Transacción</span></h2>
+                                <h2 className="text-4xl font-display italic uppercase">Finalizar <span className="text-primary">Transaccion</span></h2>
 
                                 <div className="space-y-4">
                                     <label className={`flex items-center justify-between p-6 rounded-2xl border cursor-pointer transition-all ${formData.paymentMethod === 'pse' ? 'bg-primary/5 border-primary shadow-lg' : 'bg-white/5 border-white/10'}`}>
                                         <div className="flex items-center gap-4">
                                             <input type="radio" name="pay" checked={formData.paymentMethod === 'pse'} onChange={() => setFormData({ ...formData, paymentMethod: 'pse' })} className="accent-primary" />
-                                            <span className="font-bold text-sm uppercase tracking-widest italic leading-none">PSE / Débito Bancario</span>
+                                            <span className="font-bold text-sm uppercase tracking-widest italic leading-none">PSE / Debito Bancario</span>
                                         </div>
                                         <img src="https://upload.wikimedia.org/wikipedia/commons/4/42/Pse_logo.png" className="h-6" alt="PSE" />
                                     </label>
@@ -248,7 +326,7 @@ export const Checkout = () => {
                                     <label className={`flex items-center justify-between p-6 rounded-2xl border cursor-pointer transition-all ${formData.paymentMethod === 'card' ? 'bg-primary/5 border-primary shadow-lg' : 'bg-white/5 border-white/10'}`}>
                                         <div className="flex items-center gap-4">
                                             <input type="radio" name="pay" checked={formData.paymentMethod === 'card'} onChange={() => setFormData({ ...formData, paymentMethod: 'card' })} className="accent-primary" />
-                                            <span className="font-bold text-sm uppercase tracking-widest italic leading-none">Tarjeta de Crédito</span>
+                                            <span className="font-bold text-sm uppercase tracking-widest italic leading-none">Tarjeta de Credito</span>
                                         </div>
                                         <div className="flex gap-4 items-center">
                                             <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" className="h-2 opacity-50" alt="Visa" />
@@ -264,12 +342,12 @@ export const Checkout = () => {
                                         <span className="text-[10px] font-bold uppercase tracking-widest italic">Pago 100% Seguro</span>
                                     </div>
                                     <p className="text-[11px] text-gray-500 uppercase tracking-widest font-bold leading-relaxed">
-                                        Serás redirigido a la pasarela de pagos oficial (Wompi/PayU) para completar tu transacción de forma segura. Apex Labs no almacena tus datos bancarios.
+                                        Seras redirigido a la pasarela de pagos oficial (Wompi/PayU) para completar tu transaccion de forma segura. Apex Labs no almacena tus datos bancarios.
                                     </p>
                                 </div>
 
                                 <div className="flex gap-4">
-                                    <button onClick={() => setStep(1)} className="flex-1 border border-white/10 text-white py-6 rounded-2xl font-display font-bold uppercase tracking-[0.2em] italic">Atrás</button>
+                                    <button onClick={() => setStep(1)} className="flex-1 border border-white/10 text-white py-6 rounded-2xl font-display font-bold uppercase tracking-[0.2em] italic">Atras</button>
                                     <button
                                         onClick={handleComplete}
                                         disabled={loading}
@@ -277,19 +355,6 @@ export const Checkout = () => {
                                     >
                                         {loading ? 'Procesando...' : 'Pagar Ahora'} <CheckCircle size={20} />
                                     </button>
-                                </div>
-                            </div>
-                        )}
-
-                        {step === 3 && (
-                            <div className="text-center py-20 space-y-8 animate-in fade-in zoom-in duration-500">
-                                <div className="w-32 h-32 bg-primary/10 rounded-full flex items-center justify-center mx-auto border border-primary/20 shadow-[0_0_50px_rgba(204,255,0,0.2)]">
-                                    <CheckCircle size={60} className="text-primary" />
-                                </div>
-                                <h2 className="text-6xl font-display italic uppercase leading-tight">Arsenal <span className="text-primary">Confirmado</span></h2>
-                                <p className="text-gray-500 uppercase font-bold tracking-[0.2em] text-sm">Tu pedido ha sido procesado con éxito. <br /> Recibirás un correo con los detalles.</p>
-                                <div className="pt-10">
-                                    <Link to="/" className="text-primary font-bold border-b border-primary/50 hover:border-primary transition-all pb-1 uppercase italic tracking-widest text-xs">Volver al Inicio</Link>
                                 </div>
                             </div>
                         )}
@@ -322,8 +387,8 @@ export const Checkout = () => {
                                     <span className="text-white">{formatCOP(total)}</span>
                                 </div>
                                 <div className="flex justify-between text-[11px] uppercase font-bold tracking-widest text-green-500">
-                                    <span>Envío Nacional 🚛</span>
-                                    <span>{shippingCost === 0 ? "GRATIS" : formatCOP(shippingCost)}</span>
+                                    <span>Envio Nacional</span>
+                                    <span>{shippingCost === 0 ? 'GRATIS' : formatCOP(shippingCost)}</span>
                                 </div>
                                 <div className="pt-6 border-t border-white/5 flex justify-between items-end">
                                     <span className="text-xl font-display uppercase italic text-white">Total Final</span>
@@ -338,14 +403,14 @@ export const Checkout = () => {
                                 <div className="flex items-center gap-4">
                                     <ShieldCheck className="text-primary" size={20} />
                                     <div>
-                                        <p className="text-[10px] font-black uppercase text-white tracking-widest italic leading-none mb-1">Protección al Atleta</p>
-                                        <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest">Garantía de devolución 30 días</p>
+                                        <p className="text-[10px] font-black uppercase text-white tracking-widest italic leading-none mb-1">Proteccion al Atleta</p>
+                                        <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest">Garantia de devolucion 30 dias</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-4">
                                     <MapPin className="text-primary" size={20} />
                                     <div>
-                                        <p className="text-[10px] font-black uppercase text-white tracking-widest italic leading-none mb-1">Origen Colombia 🇨🇴</p>
+                                        <p className="text-[10px] font-black uppercase text-white tracking-widest italic leading-none mb-1">Origen Colombia</p>
                                         <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest">Despachos inmediatos desde Cali</p>
                                     </div>
                                 </div>
@@ -354,6 +419,68 @@ export const Checkout = () => {
                     </div>
                 </div>
             </div>
+
+            <AnimatePresence>
+                {saleModal.open && saleModal.data && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/90 backdrop-blur-sm"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.92, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.92, opacity: 0, y: 20 }}
+                            className="w-full max-w-2xl bg-[#0a0a0a] border border-white/10 rounded-[36px] overflow-hidden shadow-[0_0_50px_rgba(204,255,0,0.14)]"
+                        >
+                            <div className="p-8 md:p-10 border-b border-white/10">
+                                <div className="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mb-6">
+                                    <CheckCircle size={30} className="text-primary" />
+                                </div>
+                                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-primary mb-3">Venta Confirmada</p>
+                                <h2 className="text-4xl md:text-5xl font-display uppercase italic leading-none">
+                                    Codigo <span className="text-primary">{saleModal.data.saleCode}</span>
+                                </h2>
+                                <p className="mt-4 text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500">ID Completo de Venta</p>
+                                <p className="font-mono text-xs text-gray-300 break-all mt-1">{saleModal.data.orderId}</p>
+                            </div>
+
+                            <div className="p-8 md:p-10 space-y-5">
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
+                                        <p className="text-[9px] uppercase tracking-[0.2em] font-black text-gray-500 mb-2">Total</p>
+                                        <p className="text-xl font-display italic text-primary">{formatCOP(saleModal.data.totalAmount)}</p>
+                                    </div>
+                                    <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
+                                        <p className="text-[9px] uppercase tracking-[0.2em] font-black text-gray-500 mb-2">Pago</p>
+                                        <p className="text-xs font-bold uppercase tracking-widest text-white leading-tight">{saleModal.data.paymentMethodLabel}</p>
+                                    </div>
+                                    <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
+                                        <p className="text-[9px] uppercase tracking-[0.2em] font-black text-gray-500 mb-2">Fecha</p>
+                                        <p className="text-xs font-bold uppercase tracking-widest text-white">{formatSaleDate(saleModal.data.createdAt)}</p>
+                                    </div>
+                                </div>
+
+                                <div className="pt-4 flex flex-col sm:flex-row gap-4">
+                                    <button
+                                        onClick={() => navigate('/my-orders')}
+                                        className="flex-1 bg-primary text-black py-4 rounded-2xl font-display font-bold uppercase tracking-[0.2em] italic hover:shadow-[0_0_35px_rgba(204,255,0,0.25)] transition-all"
+                                    >
+                                        Ver mis pedidos
+                                    </button>
+                                    <button
+                                        onClick={() => navigate('/')}
+                                        className="flex-1 border border-white/15 text-white py-4 rounded-2xl font-display font-bold uppercase tracking-[0.2em] italic hover:border-white/30 transition-colors"
+                                    >
+                                        Volver al inicio
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };
