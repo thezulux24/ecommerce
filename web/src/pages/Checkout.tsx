@@ -68,7 +68,8 @@ export const Checkout = () => {
             // Sincronizar el carrito de localStorage con el backend primero
             await axios.post('http://localhost:3000/cart/sync', {
                 items: cart.map(item => ({
-                    productId: item.id,
+                    productId: item.isBundle ? null : item.id,
+                    bundleId: item.isBundle ? item.id : null,
                     quantity: item.quantity
                 }))
             }, {
@@ -146,8 +147,8 @@ export const Checkout = () => {
                                                         key={addr.id}
                                                         onClick={() => selectSavedAddress(addr)}
                                                         className={`text-left p-4 rounded-2xl border transition-all ${formData.address === addr.street
-                                                                ? 'bg-primary/5 border-primary shadow-[0_0_20px_rgba(204,255,0,0.1)]'
-                                                                : 'bg-white/5 border-white/5 hover:border-white/20'
+                                                            ? 'bg-primary/5 border-primary shadow-[0_0_20px_rgba(204,255,0,0.1)]'
+                                                            : 'bg-white/5 border-white/5 hover:border-white/20'
                                                             }`}
                                                     >
                                                         <div className="flex items-start gap-3">

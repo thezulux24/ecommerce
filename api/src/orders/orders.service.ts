@@ -41,7 +41,14 @@ export class OrdersService {
             // Get internal cart with items and stock info
             const cart = await tx.cart.findUnique({
                 where: { userId },
-                include: { items: { include: { product: true } } },
+                include: {
+                    items: {
+                        include: {
+                            product: true,
+                            bundle: { include: { products: { include: { product: true } } } }
+                        }
+                    }
+                },
             });
 
             if (!cart || !cart.items.length) {
@@ -49,7 +56,8 @@ export class OrdersService {
             }
 
             const totalAmount = cart.items.reduce((sum, item) => {
-                return sum + Number(item.product.price) * item.quantity;
+                const price = item.product ? Number(item.product.price) : Number(item.bundle?.price || 0);
+                return sum + price * item.quantity;
             }, 0);
 
             // Create Order
@@ -61,9 +69,10 @@ export class OrdersService {
                     status: OrderStatus.PROCESSING,
                     items: {
                         create: cart.items.map((item) => ({
-                            productId: item.productId,
+                            productId: item.productId || null,
+                            bundleId: item.bundleId || null,
                             quantity: item.quantity,
-                            price: item.product.price,
+                            price: item.product ? item.product.price : (item.bundle?.price || 0),
                         })),
                     },
                 },
@@ -71,18 +80,29 @@ export class OrdersService {
 
             // Reduce stock and validate availability
             for (const item of cart.items) {
-                if (item.product.stock < item.quantity) {
-                    throw new BadRequestException(`No hay suficiente stock para: ${item.product.name}. Disponible: ${item.product.stock}`);
-                }
+                if (item.product) {
+                    if (item.product.stock < item.quantity) {
+                        throw new BadRequestException(`No hay suficiente stock para: ${item.product.name}. Disponible: ${item.product.stock}`);
+                    }
 
-                await tx.product.update({
-                    where: { id: item.productId },
-                    data: {
-                        stock: {
-                            decrement: item.quantity,
-                        },
-                    },
-                });
+                    await tx.product.update({
+                        where: { id: item.productId! },
+                        data: { stock: { decrement: item.quantity } },
+                    });
+                } else if (item.bundle) {
+                    // Reduce stock for each product in the bundle
+                    for (const bundleProd of item.bundle.products) {
+                        const totalNeeded = item.quantity; // Assuming 1 of each product per bundle unit
+                        if (bundleProd.product.stock < totalNeeded) {
+                            throw new BadRequestException(`No hay suficiente stock para un componente del pack "${item.bundle.name}": ${bundleProd.product.name}. Disponible: ${bundleProd.product.stock}`);
+                        }
+
+                        await tx.product.update({
+                            where: { id: bundleProd.productId },
+                            data: { stock: { decrement: totalNeeded } },
+                        });
+                    }
+                }
             }
 
             // Clear Cart
@@ -95,7 +115,7 @@ export class OrdersService {
     async findAllAdmin(): Promise<Order[]> {
         return this.prisma.order.findMany({
             include: {
-                items: { include: { product: true } },
+                items: { include: { product: true, bundle: true } },
                 user: { select: { email: true, firstName: true, lastName: true } },
                 shippingAddress: true
             },
@@ -106,7 +126,10 @@ export class OrdersService {
     async findAll(userId: string): Promise<Order[]> {
         return this.prisma.order.findMany({
             where: { userId },
-            include: { items: { include: { product: true } } },
+            include: {
+                items: { include: { product: { include: { images: true } }, bundle: true } },
+                shippingAddress: true
+            },
             orderBy: { createdAt: 'desc' },
         });
     }
@@ -114,7 +137,7 @@ export class OrdersService {
     async findOne(id: string): Promise<Order> {
         const order = await this.prisma.order.findUnique({
             where: { id },
-            include: { items: { include: { product: true } }, user: true },
+            include: { items: { include: { product: true, bundle: true } }, user: true },
         });
         if (!order) throw new NotFoundException(`Order with ID ${id} not found`);
         return order;

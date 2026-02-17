@@ -7,6 +7,7 @@ interface CartItem {
     quantity: number;
     image: string;
     slug: string;
+    isBundle?: boolean;
 }
 
 interface CartContextType {
@@ -47,7 +48,8 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
                 price: parseFloat(product.price),
                 quantity: quantity,
                 image: product.image || product.images?.[0]?.url || '',
-                slug: product.slug || product.id
+                slug: product.slug || product.id,
+                isBundle: product.isBundle || !!product.features // Features is a good indicator of a bundle in this project
             }];
         });
     };

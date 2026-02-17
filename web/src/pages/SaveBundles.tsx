@@ -44,7 +44,7 @@ export const SaveBundles = () => {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-                    {bundles.length > 0 ? bundles.map((bundle, i) => {
+                    {bundles.length > 0 ? bundles.map((bundle) => {
                         // Determine icons based on name or keywords as a fallback
                         let Icon = Package;
                         if (bundle.name.toLowerCase().includes('hipertrofia')) Icon = Crown;

@@ -132,21 +132,26 @@ export const Dashboard = () => {
                     <h2 className="text-xl font-display font-bold italic uppercase mb-6 border-l-4 border-primary pl-4">Pedidos Recientes</h2>
                     <div className="space-y-4">
                         {stats.recentOrders.length > 0 ? stats.recentOrders.map((order: any) => (
-                            <div key={order.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-primary/5 transition-colors cursor-pointer group">
+                            <Link
+                                to="/admin/orders"
+                                state={{ selectedOrderId: order.id }}
+                                key={order.id}
+                                className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-primary/10 transition-all cursor-pointer group border border-transparent hover:border-primary/20 shadow-sm hover:shadow-md"
+                            >
                                 <div className="flex items-center space-x-4">
                                     <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center font-bold text-[8px] text-primary italic border border-primary/20 px-1 text-center font-mono">
                                         #{order.id.slice(0, 8)}
                                     </div>
                                     <div>
-                                        <p className="text-sm font-bold uppercase tracking-tight">{order.customer}</p>
-                                        <p className="text-[10px] text-gray-400 uppercase tracking-widest">{new Date(order.createdAt).toLocaleDateString()}</p>
+                                        <p className="text-sm font-bold uppercase tracking-tight text-black group-hover:text-primary transition-colors">{order.customer}</p>
+                                        <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold">{new Date(order.createdAt).toLocaleDateString()}</p>
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-sm font-bold">{formatCOP(order.amount)}</p>
+                                    <p className="text-sm font-bold text-black">{formatCOP(order.amount)}</p>
                                     <p className={`text-[10px] font-bold uppercase tracking-widest ${order.status === 'COMPLETED' ? 'text-green-500' : 'text-orange-500'}`}>{order.status}</p>
                                 </div>
-                            </div>
+                            </Link>
                         )) : (
                             <p className="text-center py-10 text-gray-400 text-sm font-bold uppercase tracking-widest italic">No hay pedidos registrados</p>
                         )}

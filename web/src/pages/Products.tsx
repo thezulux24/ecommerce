@@ -140,6 +140,8 @@ export const Products = () => {
     const [brands, setBrands] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [showMobileFilters, setShowMobileFilters] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const productsPerPage = 12;
 
     const [searchParams, setSearchParams] = useSearchParams();
     const [filters, setFilters] = useState({
@@ -201,6 +203,7 @@ export const Products = () => {
 
                 const res = await axios.get(`${API_BASE}/products?${params.toString()}`);
                 setProducts(res.data);
+                setCurrentPage(1); // Reset to first page on filter change
             } catch (err) {
                 console.error(err);
             } finally {
@@ -210,6 +213,12 @@ export const Products = () => {
 
         fetchProducts();
     }, [filters]);
+
+    // Pagination calculations
+    const totalPages = Math.ceil(products.length / productsPerPage);
+    const indexOfLastProduct = currentPage * productsPerPage;
+    const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
+    const currentProducts = products.slice(indexOfFirstProduct, indexOfLastProduct);
 
     const handleFilterChange = (name: string, value: string) => {
         setFilters(prev => ({ ...prev, [name]: value }));
@@ -267,8 +276,8 @@ export const Products = () => {
                                 Array(6).fill(0).map((_, i) => (
                                     <div key={i} className="h-[550px] bg-white/5 rounded-[40px] animate-pulse border border-white/5" />
                                 ))
-                            ) : products.length > 0 ? (
-                                products.map(product => (
+                            ) : currentProducts.length > 0 ? (
+                                currentProducts.map(product => (
                                     <ProductCard key={product.id} product={product} />
                                 ))
                             ) : (
@@ -279,6 +288,35 @@ export const Products = () => {
                                 </div>
                             )}
                         </div>
+
+                        {/* Pagination */}
+                        {!loading && totalPages > 1 && (
+                            <div className="mt-20 flex justify-center items-center gap-8 border-t border-white/5 pt-12">
+                                <button
+                                    disabled={currentPage === 1}
+                                    onClick={() => {
+                                        setCurrentPage(prev => prev - 1);
+                                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                                    }}
+                                    className="text-xs font-black uppercase tracking-widest disabled:text-gray-700 hover:text-primary transition-colors flex items-center gap-2 group/btn"
+                                >
+                                    <ChevronRight size={16} className="rotate-180 group-hover/btn:-translate-x-1 transition-transform" /> Anterior
+                                </button>
+                                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500">
+                                    Página <span className="text-white">{currentPage}</span> / {totalPages}
+                                </span>
+                                <button
+                                    disabled={currentPage === totalPages}
+                                    onClick={() => {
+                                        setCurrentPage(prev => prev + 1);
+                                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                                    }}
+                                    className="text-xs font-black uppercase tracking-widest disabled:text-gray-700 hover:text-primary transition-colors flex items-center gap-2 group/btn"
+                                >
+                                    Siguiente <ChevronRight size={16} className="group-hover/btn:translate-x-1 transition-transform" />
+                                </button>
+                            </div>
+                        )}
                     </main>
                 </div>
             </div>

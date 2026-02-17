@@ -9,22 +9,42 @@ export class CartService {
     async getCart(userId: string): Promise<any> {
         let cart = await this.prisma.cart.findUnique({
             where: { userId },
-            include: { items: { include: { product: { include: { images: true } } } } },
+            include: {
+                items: {
+                    include: {
+                        product: { include: { images: true } },
+                        bundle: true
+                    }
+                }
+            },
         });
 
         if (!cart) {
+            // Ensure user exists before creating cart to avoid P2003
+            const userExists = await this.prisma.user.findUnique({ where: { id: userId } });
+            if (!userExists) throw new NotFoundException('Usuario no encontrado. Por favor, inicia sesión de nuevo.');
+
             cart = await this.prisma.cart.create({
                 data: { userId },
-                include: { items: { include: { product: { include: { images: true } } } } },
+                include: {
+                    items: {
+                        include: {
+                            product: { include: { images: true } },
+                            bundle: true
+                        }
+                    }
+                },
             });
         }
 
         return cart;
     }
 
-    async addItem(userId: string, productId: string, quantity: number): Promise<CartItem> {
+    async addItem(userId: string, productId: string | null, quantity: number, bundleId?: string): Promise<CartItem> {
         const cart = await this.getCart(userId);
-        const existingItem = cart.items.find((item) => item.productId === productId);
+        const existingItem = cart.items.find((item) =>
+            (productId && item.productId === productId) || (bundleId && item.bundleId === bundleId)
+        );
 
         if (existingItem) {
             return this.prisma.cartItem.update({
@@ -37,6 +57,7 @@ export class CartService {
             data: {
                 cartId: cart.id,
                 productId,
+                bundleId,
                 quantity,
             },
         });
@@ -59,7 +80,7 @@ export class CartService {
         await this.prisma.cartItem.deleteMany({ where: { cartId: cart.id } });
     }
 
-    async syncCart(userId: string, items: { productId: string; quantity: number }[]): Promise<any> {
+    async syncCart(userId: string, items: { productId?: string; bundleId?: string; quantity: number }[]): Promise<any> {
         const cart = await this.getCart(userId);
 
         return this.prisma.$transaction(async (tx) => {
@@ -71,7 +92,8 @@ export class CartService {
                 await tx.cartItem.createMany({
                     data: items.map(item => ({
                         cartId: cart.id,
-                        productId: item.productId,
+                        productId: item.productId || null,
+                        bundleId: item.bundleId || null,
                         quantity: item.quantity
                     }))
                 });
@@ -80,7 +102,14 @@ export class CartService {
             // Return updated cart within the same transaction context
             return tx.cart.findUnique({
                 where: { userId },
-                include: { items: { include: { product: { include: { images: true } } } } },
+                include: {
+                    items: {
+                        include: {
+                            product: { include: { images: true } },
+                            bundle: true
+                        }
+                    }
+                },
             });
         });
     }

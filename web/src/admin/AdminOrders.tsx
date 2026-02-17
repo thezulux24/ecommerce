@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Search, Eye, RefreshCw, CheckCircle, Truck, XCircle, Clock, MapPin, User, Package } from 'lucide-react';
+import { Search, Eye, RefreshCw, CheckCircle, Truck, X, Clock, MapPin, User, Package } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { formatCOP } from '../utils/formatters';
+import { useLocation } from 'react-router-dom';
 
 const API_BASE = 'http://localhost:3000';
 
@@ -11,7 +12,7 @@ const statusMap: Record<string, { label: string, color: string, icon: any }> = {
     'PROCESSING': { label: 'PROCESANDO', color: 'bg-blue-500/10 text-blue-500', icon: RefreshCw },
     'SHIPPED': { label: 'ENVIADO', color: 'bg-primary/10 text-primary', icon: Truck },
     'DELIVERED': { label: 'ENTREGADO', color: 'bg-green-500/10 text-green-500', icon: CheckCircle },
-    'CANCELLED': { label: 'CANCELADO', color: 'bg-red-500/10 text-red-500', icon: XCircle },
+    'CANCELLED': { label: 'CANCELADO', color: 'bg-red-500/10 text-red-500', icon: X },
 };
 
 export const AdminOrders = () => {
@@ -21,6 +22,7 @@ export const AdminOrders = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedOrder, setSelectedOrder] = useState<any>(null);
     const [trackingNumber, setTrackingNumber] = useState('');
+    const location = useLocation();
 
     const fetchOrders = async () => {
         try {
@@ -65,6 +67,13 @@ export const AdminOrders = () => {
     useEffect(() => {
         fetchOrders();
     }, []);
+
+    useEffect(() => {
+        if (orders.length > 0 && location.state?.selectedOrderId) {
+            const order = orders.find(o => o.id === location.state.selectedOrderId);
+            if (order) setSelectedOrder(order);
+        }
+    }, [orders, location.state]);
 
     const filteredOrders = orders.filter(order =>
         order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -178,8 +187,8 @@ export const AdminOrders = () => {
                                     <p className="text-gray-500 text-[10px] uppercase font-bold tracking-widest mt-1">ID: {selectedOrder.id}</p>
                                 </div>
                             </div>
-                            <button onClick={() => setSelectedOrder(null)} className="text-gray-400 hover:text-white transition-colors bg-white/5 p-2 rounded-full">
-                                <XCircle size={24} />
+                            <button onClick={() => setSelectedOrder(null)} className="text-gray-400 hover:text-white transition-colors">
+                                <X size={24} />
                             </button>
                         </div>
 
@@ -195,11 +204,19 @@ export const AdminOrders = () => {
                                             {selectedOrder.items.map((item: any) => (
                                                 <div key={item.id} className="flex gap-4 items-center bg-white/5 p-4 rounded-2xl border border-white/5 hover:border-primary/20 transition-all">
                                                     <div className="w-12 h-12 rounded-lg overflow-hidden border border-white/10 bg-black flex-shrink-0">
-                                                        <img src={item.product?.images?.[0]?.url || 'https://via.placeholder.com/100'} className="w-full h-full object-cover grayscale" alt="" />
+                                                        <img
+                                                            src={item.product ? (item.product.images?.[0]?.url || 'https://via.placeholder.com/100') : (item.bundle?.image || 'https://via.placeholder.com/100')}
+                                                            className="w-full h-full object-cover grayscale"
+                                                            alt=""
+                                                        />
                                                     </div>
                                                     <div className="flex-1">
-                                                        <p className="text-[10px] font-black uppercase text-white tracking-widest mb-0.5 leading-tight">{item.product?.name}</p>
-                                                        <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest uppercase italic">Cant: {item.quantity}</p>
+                                                        <p className="text-[10px] font-black uppercase text-white tracking-widest mb-0.5 leading-tight">
+                                                            {item.product ? item.product.name : item.bundle?.name}
+                                                        </p>
+                                                        <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest uppercase italic">
+                                                            {item.product ? 'Suplemento Elite' : 'Pack Ahorro'} | Cant: {item.quantity}
+                                                        </p>
                                                     </div>
                                                     <div className="text-right">
                                                         <p className="text-xs font-bold text-primary font-display italic">{formatCOP(Number(item.price))}</p>

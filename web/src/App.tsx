@@ -10,6 +10,7 @@ import { Legal } from './pages/Legal';
 import { Supplements } from './pages/Supplements';
 import { Categories } from './pages/Categories';
 import { Brands } from './pages/Brands';
+import { MyOrders } from './pages/MyOrders';
 import { SaveBundles } from './pages/SaveBundles';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
@@ -42,6 +43,11 @@ function App() {
           <Route path="/categories" element={<StoreLayout><Categories /></StoreLayout>} />
           <Route path="/brands" element={<StoreLayout><Brands /></StoreLayout>} />
           <Route path="/save-bundles" element={<StoreLayout><SaveBundles /></StoreLayout>} />
+          <Route path="/my-orders" element={
+            <ProtectedRoute>
+              <StoreLayout><MyOrders /></StoreLayout>
+            </ProtectedRoute>
+          } />
 
           {/* Auth sin Layout publico */}
           <Route path="/login" element={<Login />} />

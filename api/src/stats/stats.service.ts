@@ -57,7 +57,7 @@ export class StatsService {
         const orders = await this.prisma.order.findMany({
             include: {
                 user: true,
-                items: { include: { product: true } }
+                items: { include: { product: true, bundle: true } }
             },
             orderBy: { createdAt: 'desc' }
         });
@@ -69,7 +69,10 @@ export class StatsService {
             'Email': o.user?.email,
             'Total': o.totalAmount,
             'Estado': o.status,
-            'Items': o.items.map(i => `${i.product.name} (x${i.quantity})`).join(', ')
+            'Items': o.items.map(i => {
+                const name = i.product ? i.product.name : (i.bundle?.name || 'Pack Ahorro');
+                return `${name} (x${i.quantity})`;
+            }).join(', ')
         }));
     }
 }
