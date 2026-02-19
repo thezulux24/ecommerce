@@ -1,7 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma, Product } from '@prisma/client';
 import { UploadsService } from '../uploads/uploads.service';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
 @Injectable()
 export class ProductsService {
@@ -73,10 +74,36 @@ export class ProductsService {
             include: { images: true }
         });
 
-        if (product) {
-            product.images.forEach(img => this.uploadsService.deleteFile(img.url));
+        if (!product) {
+            throw new NotFoundException(`Product ${id} not found`);
         }
 
-        return this.prisma.product.delete({ where: { id } });
+        try {
+            const deletedProduct = await this.prisma.$transaction(async (tx) => {
+                // If the product is part of bundles, remove junction rows first.
+                await tx.bundleProduct.deleteMany({ where: { productId: id } });
+
+                // Keep historical/active records but detach deleted product.
+                await tx.cartItem.updateMany({
+                    where: { productId: id },
+                    data: { productId: null }
+                });
+                await tx.orderItem.updateMany({
+                    where: { productId: id },
+                    data: { productId: null }
+                });
+
+                return tx.product.delete({ where: { id } });
+            });
+
+            product.images.forEach(img => this.uploadsService.deleteFile(img.url));
+
+            return deletedProduct;
+        } catch (error) {
+            if (error instanceof PrismaClientKnownRequestError && error.code === 'P2003') {
+                throw new BadRequestException('No se puede eliminar el producto porque tiene datos relacionados.');
+            }
+            throw error;
+        }
     }
 }

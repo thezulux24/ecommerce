@@ -312,7 +312,7 @@ export const AdminBundles = () => {
                                             <div key={idx} className="flex gap-3">
                                                 <input
                                                     type="text"
-                                                    placeholder="Vantaja competitiva..."
+                                                    placeholder="Ventaja competitiva..."
                                                     value={feat}
                                                     onChange={(e) => handleFeatureChange(idx, e.target.value)}
                                                     className="flex-1 bg-white/5 border border-white/10 rounded-xl py-4 px-6 text-sm focus:border-primary transition-colors text-white"

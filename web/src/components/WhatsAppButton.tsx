@@ -1,7 +1,7 @@
 import { MessageCircle } from 'lucide-react';
 
 export const WhatsAppButton = () => {
-    const phoneNumber = "573000000000"; // Placeholder para Colombia
+    const phoneNumber = "573237607583"; // Placeholder para Colombia
     const message = "Hola Apex Labs, quiero más información sobre sus productos.";
 
     return (

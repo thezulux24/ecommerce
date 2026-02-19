@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useAuth } from './AuthContext';
 
 interface CartItem {
     id: string;
@@ -21,16 +22,59 @@ interface CartContextType {
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
+const LEGACY_CART_KEY = 'apex_cart';
+const GUEST_CART_KEY = 'apex_cart_guest';
+const CART_MIGRATION_FLAG = 'apex_cart_v2_migrated';
+
+const getStorageKey = (userId?: string): string => {
+    return userId ? `apex_cart_${userId}` : GUEST_CART_KEY;
+};
+
+const parseCart = (value: string | null): CartItem[] => {
+    if (!value) return [];
+    try {
+        const parsed = JSON.parse(value);
+        return Array.isArray(parsed) ? parsed : [];
+    } catch {
+        return [];
+    }
+};
+
+const migrateLegacyCartIfNeeded = () => {
+    if (localStorage.getItem(CART_MIGRATION_FLAG)) return;
+
+    const legacyCart = localStorage.getItem(LEGACY_CART_KEY);
+    const guestCart = localStorage.getItem(GUEST_CART_KEY);
+
+    if (legacyCart && !guestCart) {
+        localStorage.setItem(GUEST_CART_KEY, legacyCart);
+    }
+
+    localStorage.removeItem(LEGACY_CART_KEY);
+    localStorage.setItem(CART_MIGRATION_FLAG, '1');
+};
 
 export const CartProvider = ({ children }: { children: React.ReactNode }) => {
-    const [cart, setCart] = useState<CartItem[]>(() => {
-        const saved = localStorage.getItem('apex_cart');
-        return saved ? JSON.parse(saved) : [];
-    });
+    const { user, loading } = useAuth();
+    const [cart, setCart] = useState<CartItem[]>([]);
+    const [activeStorageKey, setActiveStorageKey] = useState<string>('');
 
     useEffect(() => {
-        localStorage.setItem('apex_cart', JSON.stringify(cart));
-    }, [cart]);
+        migrateLegacyCartIfNeeded();
+    }, []);
+
+    useEffect(() => {
+        if (loading) return;
+
+        const storageKey = getStorageKey(user?.id);
+        setCart(parseCart(localStorage.getItem(storageKey)));
+        setActiveStorageKey(storageKey);
+    }, [user?.id, loading]);
+
+    useEffect(() => {
+        if (!activeStorageKey) return;
+        localStorage.setItem(activeStorageKey, JSON.stringify(cart));
+    }, [cart, activeStorageKey]);
 
     const addToCart = (product: any, quantity: number) => {
         setCart(prev => {
